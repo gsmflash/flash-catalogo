@@ -85,6 +85,18 @@ productsRouter.get(
 );
 
 productsRouter.get(
+  "/admin/:id",
+  requireAuth,
+  requireRole("admin", "editor"),
+  asyncHandler(async (req, res) => {
+    const [product] = await db.select().from(products).where(eq(products.id, req.params.id)).limit(1);
+    if (!product) throw new HttpError(404, "Produto não encontrado");
+    const imagesMap = await attachImages([product.id]);
+    res.json({ ...product, images: imagesMap.get(product.id) ?? [] });
+  })
+);
+
+productsRouter.get(
   "/:slug",
   asyncHandler(async (req, res) => {
     const [product] = await db.select().from(products).where(eq(products.slug, req.params.slug)).limit(1);

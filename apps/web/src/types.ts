@@ -40,6 +40,9 @@ export interface ProductDetail extends Product {
   related: Product[];
 }
 
+/** Shape returned by the admin-only /products/admin listing (no computed pricing). */
+export type AdminProduct = Omit<Product, "pricing">;
+
 export interface ProductListResponse {
   items: Product[];
   total: number;
