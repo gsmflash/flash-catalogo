@@ -1,0 +1,16 @@
+{
+  "name": "flashcell-catalogo",
+  "private": true,
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev:web": "pnpm --filter @flashcell/web dev",
+    "dev:api": "pnpm --filter @flashcell/api dev",
+    "build": "pnpm --filter @flashcell/shared build && pnpm --filter @flashcell/api build && pnpm --filter @flashcell/web build",
+    "db:generate": "pnpm --filter @flashcell/api db:generate",
+    "db:migrate": "pnpm --filter @flashcell/api db:migrate",
+    "db:seed": "pnpm --filter @flashcell/api db:seed"
+  }
+}
