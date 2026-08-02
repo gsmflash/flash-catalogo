@@ -2,6 +2,13 @@
 
 Catálogo de celulares para a loja Flash Cell. Monorepo com frontend (Next.js), backend (Express) e um pacote de tipos/regras compartilhadas.
 
+## Produção
+
+- **Catálogo:** https://flash-catalogo-web.vercel.app
+- **Painel admin:** https://flash-catalogo-web.vercel.app/admin/login
+- **API:** https://flash-catalogo-production.up.railway.app/api
+- Repositório: https://github.com/gsmflash/flash-catalogo
+
 ## Stack
 
 - **Frontend:** Next.js 15, React 18, TypeScript, Tailwind CSS, shadcn/ui, Framer Motion — deploy na Vercel
@@ -92,7 +99,14 @@ O usuário admin inicial é criado com os dados de `SEED_ADMIN_EMAIL`/`SEED_ADMI
    - `NEXT_PUBLIC_SITE_URL` = domínio final do site (ex: `https://flashcell.com.br`)
 5. Deploy. A Vercel cuida de build/CDN/HTTPS automaticamente.
 
-Depois do primeiro deploy, atualize `CORS_ORIGIN` na API do Railway para incluir o domínio final da Vercel.
+Depois do primeiro deploy, atualize `CORS_ORIGIN` na API do Railway para incluir o domínio final da Vercel (pode listar vários, separados por vírgula — inclua o domínio de produção e o domínio `-git-main-` do branch).
+
+> Nota: o build do Railway usa o pnpm já provisionado pelo Railpack (via `mise`, versão fixada em `pnpm-lock.yaml`). Não use `corepack enable` no build command — isso baixa a versão mais recente do pnpm, que aplica uma política de "minimum release age" e pode rejeitar dependências publicadas recentemente.
+>
+> No Vercel, como `apps/web` depende do workspace `@flashcell/shared`, é necessário sobrescrever o Build Command do projeto para compilar o pacote compartilhado antes do `next build`:
+> ```
+> pnpm --filter @flashcell/shared build && pnpm run build
+> ```
 
 ### Cloudflare R2
 
