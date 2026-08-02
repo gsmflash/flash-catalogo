@@ -4,7 +4,7 @@ import { getCategories, getProducts, getSettings } from "@/lib/api";
 import { Banner } from "@/components/banner";
 import { CategoryNav } from "@/components/category-nav";
 import { SearchBar } from "@/components/search-bar";
-import { ProductGrid } from "@/components/product-grid";
+import { ProductListing } from "@/components/product-listing";
 
 export const metadata: Metadata = {
   description: "Catálogo de celulares Flash Cell: iPhone, Xiaomi, Samsung e Motorola com os melhores preços e parcelamento.",
@@ -23,28 +23,26 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     getProducts({ q, category, pageSize: 48 }),
   ]);
 
+  const title = q
+    ? `Resultados para "${q}"`
+    : category
+      ? (categories.find((c) => c.slug === category)?.name ?? "Aparelhos")
+      : "Todos os aparelhos";
+
   return (
-    <div className="container flex flex-col gap-8 py-6">
+    <div className="flex flex-col">
       <Banner settings={settings} />
 
-      <Suspense fallback={null}>
-        <div className="flex flex-col gap-4 md:hidden">
-          <SearchBar />
-        </div>
+      <div className="container flex flex-col gap-8 py-10 sm:py-14">
+        <Suspense fallback={null}>
+          <div className="flex flex-col gap-4 md:hidden">
+            <SearchBar />
+            <CategoryNav categories={categories} />
+          </div>
+        </Suspense>
 
-        <CategoryNav categories={categories} className="md:hidden" />
-      </Suspense>
-
-      <section className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">
-            {q ? `Resultados para "${q}"` : category ? categories.find((c) => c.slug === category)?.name : "Todos os aparelhos"}
-          </h2>
-          <span className="text-sm text-muted-foreground">{productsResponse.total} produtos</span>
-        </div>
-
-        <ProductGrid products={productsResponse.items} whatsapp={settings.whatsapp} />
-      </section>
+        <ProductListing title={title} items={productsResponse.items} total={productsResponse.total} whatsapp={settings.whatsapp} />
+      </div>
     </div>
   );
 }

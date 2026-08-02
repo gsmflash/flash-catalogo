@@ -32,7 +32,7 @@ export function ProductGallery({ images, alt }: { images: ProductImage[]; alt: s
   return (
     <div className="flex flex-col gap-3">
       <div
-        className="relative aspect-square w-full cursor-zoom-in overflow-hidden rounded-2xl bg-secondary"
+        className="relative aspect-square w-full cursor-zoom-in overflow-hidden rounded-3xl bg-secondary shadow-premium"
         onMouseMove={handleMouseMove}
         onMouseEnter={() => setIsZooming(true)}
         onMouseLeave={() => setIsZooming(false)}
@@ -70,8 +70,10 @@ export function ProductGallery({ images, alt }: { images: ProductImage[]; alt: s
               key={image.id}
               onClick={() => setActiveIndex(index)}
               className={cn(
-                "relative size-16 shrink-0 overflow-hidden rounded-lg border-2 transition-colors",
-                index === activeIndex ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"
+                "relative size-20 shrink-0 overflow-hidden rounded-2xl border-2 transition-all",
+                index === activeIndex
+                  ? "border-primary shadow-gold"
+                  : "border-transparent opacity-60 hover:opacity-100"
               )}
             >
               <Image src={image.url} alt={`${alt} ${index + 1}`} fill sizes="64px" className="object-cover" />

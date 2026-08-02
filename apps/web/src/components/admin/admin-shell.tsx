@@ -37,7 +37,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-secondary/30">
         <Loader2 className="size-6 animate-spin text-muted-foreground" />
       </div>
     );
@@ -48,9 +48,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const visibleItems = navItems.filter((item) => item.roles.includes(user.role));
 
   return (
-    <div className="flex min-h-screen">
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-secondary/30 md:flex">
-        <div className="flex h-16 items-center px-6 font-bold text-lg">Flash Cell Admin</div>
+    <div className="flex min-h-screen bg-secondary/20">
+      <aside className="hidden w-64 shrink-0 flex-col bg-ink text-ink-foreground md:flex">
+        <div className="flex h-20 items-center gap-2.5 px-6">
+          <span className="flex size-9 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground">F</span>
+          <span className="text-lg font-semibold">Flash Cell</span>
+        </div>
         <nav className="flex flex-1 flex-col gap-1 px-3">
           {visibleItems.map((item) => {
             const active = pathname === item.href;
@@ -59,8 +62,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                  active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors",
+                  active
+                    ? "bg-primary text-primary-foreground shadow-gold"
+                    : "text-white/60 hover:bg-white/5 hover:text-white"
                 )}
               >
                 <item.icon className="size-4" />
@@ -69,30 +74,38 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
-        <div className="border-t border-border p-4">
+        <div className="border-t border-white/10 p-4">
           <p className="truncate text-sm font-medium">{user.name}</p>
-          <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-          <Button variant="ghost" size="sm" className="mt-2 w-full justify-start gap-2 px-2" onClick={logout}>
+          <p className="truncate text-xs text-white/40">{user.email}</p>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mt-2 w-full justify-start gap-2 px-2 text-white/60 hover:bg-white/5 hover:text-white"
+            onClick={logout}
+          >
             <LogOut className="size-4" /> Sair
           </Button>
         </div>
       </aside>
 
-      <div className="flex flex-1 flex-col">
-        <header className="flex h-16 items-center justify-between border-b border-border px-4 md:hidden">
-          <span className="font-bold">Flash Cell Admin</span>
-          <Button variant="ghost" size="sm" onClick={logout}>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="flex h-16 items-center justify-between bg-ink px-4 text-ink-foreground md:hidden">
+          <span className="flex items-center gap-2 font-semibold">
+            <span className="flex size-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">F</span>
+            Flash Cell
+          </span>
+          <Button variant="ghost" size="sm" onClick={logout} className="text-white/60 hover:bg-white/5 hover:text-white">
             <LogOut className="size-4" />
           </Button>
         </header>
-        <nav className="scrollbar-none flex gap-1 overflow-x-auto border-b border-border p-2 md:hidden">
+        <nav className="scrollbar-none flex gap-1 overflow-x-auto bg-ink p-2 md:hidden">
           {visibleItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium",
-                pathname === item.href ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+                "shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
+                pathname === item.href ? "bg-primary text-primary-foreground" : "text-white/60"
               )}
             >
               {item.label}

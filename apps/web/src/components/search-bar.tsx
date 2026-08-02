@@ -6,7 +6,7 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-export function SearchBar({ className }: { className?: string }) {
+export function SearchBar({ className, dark }: { className?: string; dark?: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [value, setValue] = useState(searchParams.get("q") ?? "");
@@ -24,12 +24,20 @@ export function SearchBar({ className }: { className?: string }) {
 
   return (
     <form onSubmit={handleSubmit} className={cn("relative", className)}>
-      <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+      <Search
+        className={cn(
+          "pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2",
+          dark ? "text-white/50" : "text-muted-foreground"
+        )}
+      />
       <Input
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Buscar por marca, modelo, cor ou memória..."
-        className="pl-9"
+        className={cn(
+          "rounded-full pl-11",
+          dark && "border-white/15 bg-white/5 text-white placeholder:text-white/40 focus-visible:ring-primary"
+        )}
         aria-label="Pesquisar produtos"
       />
     </form>
