@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { getSettings } from "@/lib/api";
 import { hexToHslTriple } from "@/lib/color";
 import { Toaster } from "@/components/ui/sonner";
+import { cn } from "@/lib/utils";
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
@@ -31,8 +35,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const primaryHsl = hexToHslTriple(settings.primaryColor);
 
   return (
-    <html lang="pt-BR" style={{ "--primary": primaryHsl, "--ring": primaryHsl } as React.CSSProperties}>
-      <body className="flex min-h-screen flex-col">
+    <html lang="pt-BR" className={inter.variable} style={{ "--primary": primaryHsl, "--ring": primaryHsl } as React.CSSProperties}>
+      <body className={cn("flex min-h-screen flex-col font-sans")}>
         {children}
         <Toaster />
       </body>

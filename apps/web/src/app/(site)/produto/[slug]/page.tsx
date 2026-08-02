@@ -43,12 +43,38 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   };
 }
 
+const availabilityMap: Record<string, string> = {
+  disponivel: "https://schema.org/InStock",
+  ultima_unidade: "https://schema.org/LimitedAvailability",
+  em_breve: "https://schema.org/PreOrder",
+  vendido: "https://schema.org/SoldOut",
+};
+
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
   const [product, settings] = await Promise.all([loadProduct(slug), getSettings()]);
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: `${product.brand} ${product.model} ${product.storage} ${product.color}`,
+    brand: { "@type": "Brand", name: product.brand },
+    image: product.images.map((img) => img.url),
+    description: product.description || undefined,
+    offers: {
+      "@type": "Offer",
+      url: `${siteUrl}/produto/${product.slug}`,
+      priceCurrency: "BRL",
+      price: product.pricePix,
+      availability: availabilityMap[product.status],
+      seller: { "@type": "Organization", name: settings.storeName },
+    },
+  };
 
   return (
     <div className="container flex flex-col gap-10 py-6">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
         <ProductGallery images={product.images} alt={`${product.brand} ${product.model}`} />
 
