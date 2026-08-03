@@ -8,6 +8,7 @@ import { PRODUCT_STATUS_LABELS } from "@flashcell/shared";
 import type { Product } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppButton } from "@/components/whatsapp-button";
+import { InstallmentDialog } from "@/components/installment-dialog";
 import { formatBRL } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -86,7 +87,12 @@ export function ProductCard({ product, whatsapp }: ProductCardProps) {
         </div>
       </Link>
 
-      <div className="p-5 pt-0 sm:p-6 sm:pt-0">
+      <div className="flex flex-col gap-2.5 p-5 pt-0 sm:p-6 sm:pt-0">
+        <InstallmentDialog
+          productName={`${product.brand} ${product.model}`}
+          pricing={product.pricing}
+          className="w-full border-primary/25 bg-primary/5 text-primary hover:bg-primary/10"
+        />
         <WhatsAppButton
           phone={whatsapp}
           brand={product.brand}
