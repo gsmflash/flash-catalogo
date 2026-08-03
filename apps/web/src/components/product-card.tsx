@@ -3,11 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { PRODUCT_STATUS_LABELS } from "@flashcell/shared";
 import type { Product } from "@/types";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { WhatsAppButton } from "@/components/whatsapp-button";
 import { formatBRL } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -18,10 +17,10 @@ interface ProductCardProps {
 }
 
 const statusVariant: Record<string, string> = {
-  disponivel: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20",
-  ultima_unidade: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
-  em_breve: "bg-neutral-500/10 text-neutral-600 dark:text-neutral-300 border-neutral-500/20",
-  vendido: "bg-zinc-500/10 text-zinc-500 border-zinc-500/20",
+  disponivel: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25",
+  ultima_unidade: "bg-amber-500/15 text-amber-400 border-amber-500/25",
+  em_breve: "bg-neutral-500/15 text-neutral-300 border-neutral-500/25",
+  vendido: "bg-zinc-500/15 text-zinc-400 border-zinc-500/25",
 };
 
 export function ProductCard({ product, whatsapp }: ProductCardProps) {
@@ -38,47 +37,48 @@ export function ProductCard({ product, whatsapp }: ProductCardProps) {
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.35, ease: "easeOut" }}
       whileHover={{ y: -6 }}
-      className="group relative flex flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-premium transition-shadow duration-300 hover:shadow-premium-lg"
+      className="group relative flex flex-col overflow-hidden rounded-[28px] border border-primary/15 bg-[#1a1a1a] shadow-premium transition-all duration-300 hover:border-primary/30 hover:shadow-gold"
     >
       <Link href={`/produto/${product.slug}`} className="flex flex-1 flex-col">
-        <div className="relative aspect-[4/5] w-full overflow-hidden bg-secondary">
+        <div className="relative aspect-[4/5] w-full overflow-hidden bg-black/40">
           {mainImage ? (
             <Image
               src={mainImage.url}
               alt={`${product.brand} ${product.model}`}
               fill
-              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
               className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">
-              Sem imagem
-            </div>
+            <div className="flex h-full w-full items-center justify-center text-sm text-white/40">Sem imagem</div>
           )}
+
           <Badge
             variant="outline"
             className={cn("absolute left-3 top-3 border backdrop-blur", statusVariant[product.status])}
           >
             {PRODUCT_STATUS_LABELS[product.status]}
           </Badge>
-        </div>
 
-        <div className="flex flex-1 flex-col gap-1.5 p-5">
-          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{product.brand}</span>
-          <h3 className="text-lg font-semibold leading-tight">{product.model}</h3>
-          <p className="text-sm text-muted-foreground">
-            {product.color} · {product.storage}
-          </p>
-
-          <div className="mt-1 inline-flex w-fit items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
-            <ShieldCheck className="size-3.5" /> Garantia Flash Cell
+          <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full border border-primary/30 bg-black/60 px-2.5 py-1 text-[11px] font-medium text-primary backdrop-blur">
+            <ShieldCheck className="size-3.5" /> Garantia
           </div>
 
-          <div className="mt-3 space-y-0.5">
-            <p className="text-xl font-bold text-primary">{formatBRL(product.pricePix)}</p>
-            <p className="text-xs text-muted-foreground">no Pix</p>
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/70 to-transparent" />
+        </div>
+
+        <div className="flex flex-1 flex-col gap-1.5 p-5 sm:p-6">
+          <span className="text-xs font-medium uppercase tracking-wider text-white/45">{product.brand}</span>
+          <h3 className="text-xl font-semibold leading-tight text-white sm:text-2xl">{product.model}</h3>
+          <p className="text-sm text-white/50">
+            {product.color} · <span className="font-medium text-white/80">{product.storage}</span>
+          </p>
+
+          <div className="mt-4 space-y-0.5">
+            <p className="text-2xl font-bold text-primary sm:text-3xl">{formatBRL(product.pricePix)}</p>
+            <p className="text-xs text-white/40">à vista no Pix</p>
             {maxInstallment && (
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-white/40">
                 ou {maxInstallment.installments}x de {formatBRL(maxInstallment.perInstallment)} no cartão
               </p>
             )}
@@ -86,19 +86,14 @@ export function ProductCard({ product, whatsapp }: ProductCardProps) {
         </div>
       </Link>
 
-      <div className="flex items-center gap-2 p-5 pt-0">
-        <Button asChild variant="outline" size="sm" className="flex-1">
-          <Link href={`/produto/${product.slug}`}>
-            Ver detalhes <ArrowRight className="size-3.5" />
-          </Link>
-        </Button>
+      <div className="p-5 pt-0 sm:p-6 sm:pt-0">
         <WhatsAppButton
           phone={whatsapp}
           brand={product.brand}
           model={product.model}
           storage={product.storage}
-          size="icon"
-          label={null}
+          size="lg"
+          className="w-full"
         />
       </div>
     </motion.div>

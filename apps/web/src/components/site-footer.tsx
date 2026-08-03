@@ -16,7 +16,9 @@ export function SiteFooter({ settings }: { settings: StoreSettings }) {
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2.5">
             {settings.logoUrl ? (
-              <Image src={settings.logoUrl} alt={settings.storeName} width={40} height={40} className="rounded-full" />
+              <span className="relative h-10 w-10 shrink-0">
+                <Image src={settings.logoUrl} alt={settings.storeName} fill sizes="40px" className="object-contain" />
+              </span>
             ) : (
               <span className="flex size-10 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground">
                 {settings.storeName.charAt(0)}

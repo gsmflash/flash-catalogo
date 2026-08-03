@@ -90,16 +90,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </div>
 
           <div>
-            <span className="text-sm font-medium uppercase tracking-wider text-muted-foreground">{product.brand}</span>
-            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{product.model}</h1>
-            <p className="mt-1.5 text-muted-foreground">
-              {product.color} · {product.storage}
+            <span className="text-sm font-semibold uppercase tracking-wider text-white/45">{product.brand}</span>
+            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">{product.model}</h1>
+            <p className="mt-2 text-base text-muted-foreground">
+              {product.color} · <span className="font-medium text-foreground/80">{product.storage}</span>
             </p>
           </div>
 
-          <div className="rounded-2xl border border-border bg-secondary/40 p-5">
-            <p className="text-4xl font-bold text-primary">{formatBRL(product.pricePix)}</p>
-            <p className="text-sm text-muted-foreground">à vista no Pix</p>
+          <div className="rounded-2xl border border-primary/15 bg-secondary/40 p-6">
+            <p className="text-5xl font-extrabold tracking-tight text-primary">{formatBRL(product.pricePix)}</p>
+            <p className="mt-1 text-sm text-muted-foreground">à vista no Pix</p>
 
             <div className="mt-4 hidden sm:block">
               <WhatsAppButton
@@ -125,15 +125,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <div className="flex flex-col gap-6">
           {product.description && (
             <div>
-              <h2 className="mb-3 text-lg font-semibold">Descrição</h2>
+              <h2 className="mb-4 text-2xl font-bold tracking-tight">Descrição</h2>
               <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">{product.description}</p>
             </div>
           )}
         </div>
 
         {Object.keys(product.specifications).length > 0 && (
-          <div className="rounded-2xl border border-border p-5">
-            <h2 className="mb-3 font-semibold">Especificações</h2>
+          <div className="rounded-2xl border border-primary/15 bg-secondary/20 p-6">
+            <h2 className="mb-4 text-lg font-bold">Especificações</h2>
             <dl className="grid grid-cols-1 gap-2 text-sm">
               {Object.entries(product.specifications).map(([key, value]) => (
                 <div key={key} className="flex justify-between gap-2 border-b border-border/60 py-2 last:border-0">
@@ -148,7 +148,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
       {product.related.length > 0 && (
         <section className="flex flex-col gap-4">
-          <h2 className="text-2xl font-semibold tracking-tight">Produtos relacionados</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Produtos relacionados</h2>
           <ProductGrid products={product.related} whatsapp={settings.whatsapp} />
         </section>
       )}
