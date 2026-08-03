@@ -20,14 +20,16 @@ export function InstallmentDialog({ productName, pricing, className }: Installme
           <Calculator className="size-4" /> Ver parcelamento
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+      <DialogContent className="flex max-w-md flex-col gap-0 p-0">
+        <DialogHeader className="shrink-0 gap-1 px-6 pb-4 pt-6">
+          <DialogTitle className="flex items-center gap-2 pr-6">
             <Calculator className="size-4 text-primary" /> Parcelamento
           </DialogTitle>
           <p className="text-sm text-muted-foreground">{productName}</p>
         </DialogHeader>
-        <InstallmentTable pricing={pricing} />
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6">
+          <InstallmentTable pricing={pricing} />
+        </div>
       </DialogContent>
     </Dialog>
   );
