@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { getCategories, getProducts, getSettings } from "@/lib/api";
+import { getCategories, getPaymentMachines, getProducts, getSettings } from "@/lib/api";
 import { Banner } from "@/components/banner";
 import { CategoryNav } from "@/components/category-nav";
 import { SearchBar } from "@/components/search-bar";
@@ -17,10 +17,11 @@ interface HomePageProps {
 export default async function HomePage({ searchParams }: HomePageProps) {
   const { q, category } = await searchParams;
 
-  const [settings, categories, productsResponse] = await Promise.all([
+  const [settings, categories, productsResponse, machines] = await Promise.all([
     getSettings(),
     getCategories(),
     getProducts({ q, category, pageSize: 48 }),
+    getPaymentMachines(),
   ]);
 
   const title = q
@@ -41,7 +42,13 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           </div>
         </Suspense>
 
-        <ProductListing title={title} items={productsResponse.items} total={productsResponse.total} whatsapp={settings.whatsapp} />
+        <ProductListing
+          title={title}
+          items={productsResponse.items}
+          total={productsResponse.total}
+          whatsapp={settings.whatsapp}
+          machines={machines}
+        />
       </div>
     </div>
   );

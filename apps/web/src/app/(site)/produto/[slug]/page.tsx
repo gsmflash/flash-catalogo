@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 import { PRODUCT_STATUS_LABELS } from "@flashcell/shared";
-import { getProductBySlug, getSettings, NotFoundError } from "@/lib/api";
+import { getPaymentMachines, getProductBySlug, getSettings, NotFoundError } from "@/lib/api";
 import { ProductGallery } from "@/components/product-gallery";
-import { InstallmentTable } from "@/components/installment-table";
+import { PaymentSimulator } from "@/components/payment-simulator";
 import { WhatsAppButton } from "@/components/whatsapp-button";
 import { ShareButton } from "@/components/share-button";
 import { ProductGrid } from "@/components/product-grid";
@@ -54,7 +54,7 @@ const availabilityMap: Record<string, string> = {
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const [product, settings] = await Promise.all([loadProduct(slug), getSettings()]);
+  const [product, settings, machines] = await Promise.all([loadProduct(slug), getSettings(), getPaymentMachines()]);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
   const jsonLd = {
@@ -117,7 +117,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <ShieldCheck className="size-4" /> Garantia e procedência Flash Cell
           </div>
 
-          <InstallmentTable pricing={product.pricing} />
+          <PaymentSimulator price={product.price} machines={machines} defaultMachineId={product.machineId} />
         </div>
       </div>
 
@@ -149,7 +149,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
       {product.related.length > 0 && (
         <section className="flex flex-col gap-4">
           <h2 className="text-3xl font-bold tracking-tight">Produtos relacionados</h2>
-          <ProductGrid products={product.related} whatsapp={settings.whatsapp} />
+          <ProductGrid products={product.related} whatsapp={settings.whatsapp} machines={machines} />
         </section>
       )}
 

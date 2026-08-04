@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { ShieldCheck } from "lucide-react";
 import { PRODUCT_STATUS_LABELS } from "@flashcell/shared";
-import type { Product } from "@/types";
+import type { PaymentMachine, Product } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppButton } from "@/components/whatsapp-button";
 import { InstallmentDialog } from "@/components/installment-dialog";
@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 interface ProductCardProps {
   product: Product;
   whatsapp: string;
+  machines: PaymentMachine[];
 }
 
 const statusVariant: Record<string, string> = {
@@ -24,7 +25,7 @@ const statusVariant: Record<string, string> = {
   vendido: "bg-zinc-500/15 text-zinc-400 border-zinc-500/25",
 };
 
-export function ProductCard({ product, whatsapp }: ProductCardProps) {
+export function ProductCard({ product, whatsapp, machines }: ProductCardProps) {
   const mainImage = product.images.find((img) => img.isMain) ?? product.images[0];
   const maxInstallment = product.pricing
     .filter((p) => p.method === "credito")
@@ -90,7 +91,9 @@ export function ProductCard({ product, whatsapp }: ProductCardProps) {
       <div className="flex flex-col gap-2.5 p-5 pt-0 sm:p-6 sm:pt-0">
         <InstallmentDialog
           productName={`${product.brand} ${product.model}`}
-          pricing={product.pricing}
+          price={product.price}
+          machines={machines}
+          defaultMachineId={product.machineId}
           className="w-full border-primary/25 bg-primary/5 text-primary hover:bg-primary/10"
         />
         <WhatsAppButton

@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { ArrowUpDown } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ProductGrid } from "@/components/product-grid";
-import type { Product } from "@/types";
+import type { PaymentMachine, Product } from "@/types";
 
 type SortOption = "recent" | "price-asc" | "price-desc" | "name";
 
@@ -20,9 +20,10 @@ interface ProductListingProps {
   items: Product[];
   total: number;
   whatsapp: string;
+  machines: PaymentMachine[];
 }
 
-export function ProductListing({ title, items, total, whatsapp }: ProductListingProps) {
+export function ProductListing({ title, items, total, whatsapp, machines }: ProductListingProps) {
   const [sort, setSort] = useState<SortOption>("recent");
 
   const sorted = useMemo(() => {
@@ -64,7 +65,7 @@ export function ProductListing({ title, items, total, whatsapp }: ProductListing
         </Select>
       </div>
 
-      <ProductGrid products={sorted} whatsapp={whatsapp} />
+      <ProductGrid products={sorted} whatsapp={whatsapp} machines={machines} />
     </section>
   );
 }

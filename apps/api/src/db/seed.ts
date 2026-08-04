@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { DEFAULT_CATEGORIES, DEFAULT_INFINITEPAY_FEES } from "@flashcell/shared";
+import { DEFAULT_CATEGORIES, DEFAULT_PAYMENT_MACHINES } from "@flashcell/shared";
 import { env } from "../env.js";
 import { db, pool } from "./client.js";
 import { categories, paymentFees, paymentMachines, settings, users } from "./schema.js";
@@ -15,31 +15,35 @@ async function main() {
       .onConflictDoNothing({ target: categories.slug });
   }
 
-  const [machine] = await db
-    .select()
-    .from(paymentMachines)
-    .where(eq(paymentMachines.name, "InfinitePay"))
-    .limit(1);
+  for (const machineDef of DEFAULT_PAYMENT_MACHINES) {
+    const [machine] = await db
+      .select()
+      .from(paymentMachines)
+      .where(eq(paymentMachines.name, machineDef.name))
+      .limit(1);
 
-  const machineId =
-    machine?.id ??
-    (
+    const machineId =
+      machine?.id ??
+      (
+        await db
+          .insert(paymentMachines)
+          .values({ name: machineDef.name, provider: machineDef.provider })
+          .returning()
+      )[0].id;
+
+    for (const fee of machineDef.fees) {
       await db
-        .insert(paymentMachines)
-        .values({ name: "InfinitePay", provider: "InfinitePay" })
-        .returning()
-    )[0].id;
+        .insert(paymentFees)
+        .values({
+          machineId,
+          method: fee.method,
+          installments: fee.installments,
+          feePercent: fee.feePercent.toString(),
+        })
+        .onConflictDoNothing();
+    }
 
-  for (const fee of DEFAULT_INFINITEPAY_FEES) {
-    await db
-      .insert(paymentFees)
-      .values({
-        machineId,
-        method: fee.method,
-        installments: fee.installments,
-        feePercent: fee.feePercent.toString(),
-      })
-      .onConflictDoNothing();
+    console.log(`Máquina "${machineDef.name}" pronta (${machineDef.fees.length} taxas).`);
   }
 
   await db

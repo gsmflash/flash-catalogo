@@ -1,18 +1,20 @@
 "use client";
 
 import { Calculator } from "lucide-react";
-import type { InstallmentOption } from "@flashcell/shared";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { InstallmentTable } from "@/components/installment-table";
+import { PaymentSimulator } from "@/components/payment-simulator";
+import type { PaymentMachine } from "@/types";
 
 interface InstallmentDialogProps {
   productName: string;
-  pricing: InstallmentOption[];
+  price: string | number;
+  machines: PaymentMachine[];
+  defaultMachineId?: string;
   className?: string;
 }
 
-export function InstallmentDialog({ productName, pricing, className }: InstallmentDialogProps) {
+export function InstallmentDialog({ productName, price, machines, defaultMachineId, className }: InstallmentDialogProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -28,7 +30,7 @@ export function InstallmentDialog({ productName, pricing, className }: Installme
           <p className="text-sm text-muted-foreground">{productName}</p>
         </DialogHeader>
         <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6">
-          <InstallmentTable pricing={pricing} />
+          <PaymentSimulator price={price} machines={machines} defaultMachineId={defaultMachineId} />
         </div>
       </DialogContent>
     </Dialog>
