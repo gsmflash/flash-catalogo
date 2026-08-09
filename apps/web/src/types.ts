@@ -1,4 +1,4 @@
-import type { InstallmentOption, ProductStatus } from "@flashcell/shared";
+import type { InstallmentOption, PaymentMethod, ProductStatus } from "@flashcell/shared";
 
 export interface ProductImage {
   id: string;
@@ -66,5 +66,23 @@ export interface PaymentMachine {
   id: string;
   name: string;
   provider: string;
-  fees: Array<{ id: string; method: "debito" | "credito"; installments: number; feePercent: string }>;
+  active: boolean;
+  maxInstallments: number | null;
+  settlementType: string | null;
+  fees: Array<{ id: string; method: PaymentMethod; installments: number; feePercent: string }>;
+}
+
+export interface PaymentSimulation {
+  id: string;
+  machineId: string | null;
+  machineName: string;
+  method: PaymentMethod;
+  installments: number;
+  mode: "charge" | "net";
+  inputAmount: string;
+  chargeAmount: string;
+  netAmount: string;
+  feeAmount: string;
+  feePercent: string;
+  createdAt: string;
 }

@@ -37,8 +37,9 @@ export function getCategories(): Promise<Category[]> {
   return apiFetch<Category[]>("/categories");
 }
 
-export function getPaymentMachines(): Promise<PaymentMachine[]> {
-  return apiFetch<PaymentMachine[]>("/payments/machines");
+export async function getPaymentMachines(): Promise<PaymentMachine[]> {
+  const machines = await apiFetch<PaymentMachine[]>("/payments/machines");
+  return machines.filter((m) => m.active);
 }
 
 export function getProducts(params: ProductSearchParams = {}): Promise<ProductListResponse> {

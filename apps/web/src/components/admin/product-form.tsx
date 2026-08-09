@@ -213,7 +213,7 @@ export function ProductForm({ initialProduct }: ProductFormProps) {
               ))}
             </SelectContent>
           </Select>
-          <p className="text-xs text-muted-foreground">As parcelas são calculadas automaticamente a partir das taxas cadastradas em Financeiro.</p>
+          <p className="text-xs text-muted-foreground">As parcelas são calculadas automaticamente a partir das taxas cadastradas em Operadoras.</p>
         </div>
       </section>
 

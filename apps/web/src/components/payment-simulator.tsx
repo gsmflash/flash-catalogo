@@ -37,11 +37,13 @@ export function PaymentSimulator({ price, machines, defaultMachineId }: PaymentS
 
   const pricing = useMemo(() => {
     if (!selectedMachine) return [];
-    const fees: FeeRow[] = selectedMachine.fees.map((f) => ({
-      method: f.method,
-      installments: f.installments,
-      feePercent: Number(f.feePercent),
-    }));
+    const fees: FeeRow[] = selectedMachine.fees
+      .filter((f) => !selectedMachine.maxInstallments || f.installments <= selectedMachine.maxInstallments)
+      .map((f) => ({
+        method: f.method,
+        installments: f.installments,
+        feePercent: Number(f.feePercent),
+      }));
     return calculateInstallments(Number(price), fees);
   }, [price, selectedMachine]);
 
