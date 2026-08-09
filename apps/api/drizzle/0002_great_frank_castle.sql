@@ -1,0 +1,1 @@
+ALTER TABLE "payment_fees" ADD COLUMN "monthly_rate" numeric(5, 2);

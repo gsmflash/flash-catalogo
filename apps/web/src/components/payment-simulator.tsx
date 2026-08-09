@@ -43,6 +43,7 @@ export function PaymentSimulator({ price, machines, defaultMachineId }: PaymentS
         method: f.method,
         installments: f.installments,
         feePercent: Number(f.feePercent),
+        monthlyRate: f.monthlyRate != null ? Number(f.monthlyRate) : undefined,
       }));
     return calculateInstallments(Number(price), fees);
   }, [price, selectedMachine]);

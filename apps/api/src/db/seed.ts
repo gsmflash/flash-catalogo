@@ -27,7 +27,13 @@ async function main() {
       (
         await db
           .insert(paymentMachines)
-          .values({ name: machineDef.name, provider: machineDef.provider })
+          .values({
+            name: machineDef.name,
+            provider: machineDef.provider,
+            active: machineDef.active,
+            maxInstallments: machineDef.maxInstallments,
+            settlementType: machineDef.settlementType,
+          })
           .returning()
       )[0].id;
 
@@ -39,6 +45,7 @@ async function main() {
           method: fee.method,
           installments: fee.installments,
           feePercent: fee.feePercent.toString(),
+          monthlyRate: fee.monthlyRate != null ? fee.monthlyRate.toString() : null,
         })
         .onConflictDoNothing();
     }

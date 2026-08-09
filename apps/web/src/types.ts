@@ -69,7 +69,7 @@ export interface PaymentMachine {
   active: boolean;
   maxInstallments: number | null;
   settlementType: string | null;
-  fees: Array<{ id: string; method: PaymentMethod; installments: number; feePercent: string }>;
+  fees: Array<{ id: string; method: PaymentMethod; installments: number; feePercent: string; monthlyRate: string | null }>;
 }
 
 export interface PaymentSimulation {

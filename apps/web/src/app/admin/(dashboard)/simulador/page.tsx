@@ -81,12 +81,18 @@ export default function SimuladorPage() {
 
   const fee = machine?.fees.find((f) => f.method === selectedMethod && f.installments === selectedInstallments);
   const feePercent = fee ? Number(fee.feePercent) : 0;
+  const monthlyRate = fee?.monthlyRate != null ? Number(fee.monthlyRate) : undefined;
 
   const numericAmount = Number(amount.replace(",", "."));
   const result = useMemo(() => {
     if (!fee || Number.isNaN(numericAmount) || numericAmount <= 0) return null;
-    return mode === "charge" ? computeFromCharge(numericAmount, feePercent) : computeFromNet(numericAmount, feePercent);
-  }, [fee, numericAmount, feePercent, mode]);
+    return mode === "charge"
+      ? computeFromCharge(numericAmount, feePercent, monthlyRate, selectedInstallments)
+      : computeFromNet(numericAmount, feePercent, monthlyRate, selectedInstallments);
+  }, [fee, numericAmount, feePercent, monthlyRate, selectedInstallments, mode]);
+
+  /** Effective total % (feeAmount/chargeAmount), correct for both flat and compound (PagBank-style) fees. */
+  const effectivePercent = result && result.chargeAmount > 0 ? (result.feeAmount / result.chargeAmount) * 100 : feePercent;
 
   async function handleSaveSimulation() {
     if (!machine || !result) return;
@@ -104,7 +110,7 @@ export default function SimuladorPage() {
           chargeAmount: result.chargeAmount,
           netAmount: result.netAmount,
           feeAmount: result.feeAmount,
-          feePercent,
+          feePercent: effectivePercent,
         },
       });
       toast.success("Simulação salva no histórico");
@@ -235,7 +241,7 @@ export default function SimuladorPage() {
                       <div className="grid grid-cols-2 gap-3">
                         <div className="rounded-lg border border-border p-3">
                           <p className="text-xs text-muted-foreground">Taxa aplicada</p>
-                          <p className="text-lg font-semibold">{feePercent.toFixed(2)}%</p>
+                          <p className="text-lg font-semibold">{effectivePercent.toFixed(2)}%</p>
                         </div>
                         <div className="rounded-lg border border-border p-3">
                           <p className="text-xs text-muted-foreground">Valor descontado</p>

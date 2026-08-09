@@ -48,6 +48,8 @@ export interface DefaultFeeRow {
   method: PaymentMethod;
   installments: number;
   feePercent: number;
+  /** Optional monthly compounding rate (%) — see FeeRow in pricing.ts. */
+  monthlyRate?: number;
 }
 
 /**
@@ -98,6 +100,39 @@ export const DEFAULT_MERCADOPAGO_FEES: DefaultFeeRow[] = [
 ];
 
 /**
+ * Default PagBank fee table. Unlike the other acquirers, PagBank's installment
+ * fee is not a flat percentage per installment count — it's a fixed
+ * "taxa de intermediação" (varies by installment tier) plus a "taxa de
+ * parcelamento" that compounds monthly over the plan's settlement time
+ * (see monthlyRate/compoundFactor in pricing.ts). Débito and crédito à vista
+ * have no monthly compounding since there's nothing to settle over time.
+ */
+export const DEFAULT_PAGBANK_FEES: DefaultFeeRow[] = [
+  { method: "debito", installments: 1, feePercent: 1.59 },
+  { method: "credito", installments: 1, feePercent: 3.59 },
+  // 2x a 6x: taxa de intermediação 2,59% + taxa de parcelamento 2,03% a.m.
+  { method: "credito", installments: 2, feePercent: 2.59, monthlyRate: 2.03 },
+  { method: "credito", installments: 3, feePercent: 2.59, monthlyRate: 2.03 },
+  { method: "credito", installments: 4, feePercent: 2.59, monthlyRate: 2.03 },
+  { method: "credito", installments: 5, feePercent: 2.59, monthlyRate: 2.03 },
+  { method: "credito", installments: 6, feePercent: 2.59, monthlyRate: 2.03 },
+  // 7x a 12x: taxa de intermediação 2,79% + taxa de parcelamento 2,03% a.m.
+  { method: "credito", installments: 7, feePercent: 2.79, monthlyRate: 2.03 },
+  { method: "credito", installments: 8, feePercent: 2.79, monthlyRate: 2.03 },
+  { method: "credito", installments: 9, feePercent: 2.79, monthlyRate: 2.03 },
+  { method: "credito", installments: 10, feePercent: 2.79, monthlyRate: 2.03 },
+  { method: "credito", installments: 11, feePercent: 2.79, monthlyRate: 2.03 },
+  { method: "credito", installments: 12, feePercent: 2.79, monthlyRate: 2.03 },
+  // 13x a 18x: taxa de intermediação 3,59% + taxa de parcelamento 2,03% a.m.
+  { method: "credito", installments: 13, feePercent: 3.59, monthlyRate: 2.03 },
+  { method: "credito", installments: 14, feePercent: 3.59, monthlyRate: 2.03 },
+  { method: "credito", installments: 15, feePercent: 3.59, monthlyRate: 2.03 },
+  { method: "credito", installments: 16, feePercent: 3.59, monthlyRate: 2.03 },
+  { method: "credito", installments: 17, feePercent: 3.59, monthlyRate: 2.03 },
+  { method: "credito", installments: 18, feePercent: 3.59, monthlyRate: 2.03 },
+];
+
+/**
  * Default payment machines/acquirers seeded on first install. Adding a new
  * acquirer in the future is just another entry here (or via the admin panel) —
  * no calculation logic needs to change, since calculateInstallments() is
@@ -126,5 +161,13 @@ export const DEFAULT_PAYMENT_MACHINES: Array<{
     maxInstallments: 18,
     settlementType: "Maquininha e Link de Pagamento",
     fees: DEFAULT_MERCADOPAGO_FEES,
+  },
+  {
+    name: "PagBank",
+    provider: "PagBank",
+    active: true,
+    maxInstallments: 18,
+    settlementType: "Maquininha e Link de Pagamento",
+    fees: DEFAULT_PAGBANK_FEES,
   },
 ];

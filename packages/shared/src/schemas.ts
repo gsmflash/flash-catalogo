@@ -71,6 +71,12 @@ export const paymentFeeSchema = z.object({
   method: z.enum(PAYMENT_METHODS),
   installments: z.number().int().min(MIN_INSTALLMENTS).max(MAX_INSTALLMENTS),
   feePercent: z.number().min(0).max(100),
+  /**
+   * Optional monthly compounding rate (%) for acquirers whose installment fee
+   * compounds over the plan's average settlement time instead of being a flat
+   * percentage (e.g. PagBank). Null/omitted means a flat fee, as usual.
+   */
+  monthlyRate: z.number().min(0).max(100).nullable().optional(),
 });
 export type PaymentFeeInput = z.infer<typeof paymentFeeSchema>;
 

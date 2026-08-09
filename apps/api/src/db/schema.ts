@@ -52,6 +52,7 @@ export const paymentFees = pgTable(
     method: text("method").notNull(),
     installments: integer("installments").notNull(),
     feePercent: numeric("fee_percent", { precision: 5, scale: 2 }).notNull(),
+    monthlyRate: numeric("monthly_rate", { precision: 5, scale: 2 }),
   },
   (table) => ({
     uniqueFee: uniqueIndex("payment_fees_unique").on(table.machineId, table.method, table.installments),

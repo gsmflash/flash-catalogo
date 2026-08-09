@@ -24,12 +24,14 @@ function feeLabel(method: PaymentMethod, installments: number): string {
 export default function OperadorasPage() {
   const [machines, setMachines] = useState<PaymentMachine[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editedFees, setEditedFees] = useState<Record<string, string>>({});
+  const [editedFees, setEditedFees] = useState<Record<string, { feePercent: string; monthlyRate: string }>>({});
   const [savingFeeId, setSavingFeeId] = useState<string | null>(null);
   const [deletingFeeId, setDeletingFeeId] = useState<string | null>(null);
   const [savingMachineId, setSavingMachineId] = useState<string | null>(null);
   const [machineDrafts, setMachineDrafts] = useState<Record<string, { maxInstallments: string; settlementType: string }>>({});
-  const [newFeeDrafts, setNewFeeDrafts] = useState<Record<string, { method: PaymentMethod; installments: string; feePercent: string }>>({});
+  const [newFeeDrafts, setNewFeeDrafts] = useState<
+    Record<string, { method: PaymentMethod; installments: string; feePercent: string; monthlyRate: string }>
+  >({});
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [newMachine, setNewMachine] = useState({ name: "", provider: "", maxInstallments: "12", settlementType: "" });
@@ -49,17 +51,25 @@ export default function OperadorasPage() {
   useEffect(reload, []);
 
   async function handleSaveFee(feeId: string) {
-    const value = editedFees[feeId];
-    if (value === undefined) return;
-    const feePercent = Number(value.replace(",", "."));
+    const draft = editedFees[feeId];
+    if (draft === undefined) return;
+    const feePercent = Number(draft.feePercent.replace(",", "."));
     if (Number.isNaN(feePercent) || feePercent < 0 || feePercent > 100) {
       toast.error("Informe uma taxa válida entre 0 e 100");
       return;
     }
+    let monthlyRate: number | null = null;
+    if (draft.monthlyRate.trim() !== "") {
+      monthlyRate = Number(draft.monthlyRate.replace(",", "."));
+      if (Number.isNaN(monthlyRate) || monthlyRate < 0 || monthlyRate > 100) {
+        toast.error("Informe uma taxa de parcelamento mensal válida entre 0 e 100");
+        return;
+      }
+    }
 
     setSavingFeeId(feeId);
     try {
-      await adminFetch(`/payments/fees/${feeId}`, { method: "PUT", body: { feePercent } });
+      await adminFetch(`/payments/fees/${feeId}`, { method: "PUT", body: { feePercent, monthlyRate } });
       toast.success("Taxa atualizada — os preços de todos os produtos foram recalculados");
       setEditedFees((prev) => {
         const next = { ...prev };
@@ -89,7 +99,7 @@ export default function OperadorasPage() {
   }
 
   async function handleAddFee(machineId: string) {
-    const draft = newFeeDrafts[machineId] ?? { method: "credito", installments: "1", feePercent: "" };
+    const draft = newFeeDrafts[machineId] ?? { method: "credito" as PaymentMethod, installments: "1", feePercent: "", monthlyRate: "" };
     const installments = Number(draft.installments);
     const feePercent = Number(draft.feePercent.replace(",", "."));
     if (!Number.isInteger(installments) || installments < 1) {
@@ -100,11 +110,22 @@ export default function OperadorasPage() {
       toast.error("Informe uma taxa válida entre 0 e 100");
       return;
     }
+    let monthlyRate: number | null = null;
+    if (draft.monthlyRate.trim() !== "") {
+      monthlyRate = Number(draft.monthlyRate.replace(",", "."));
+      if (Number.isNaN(monthlyRate) || monthlyRate < 0 || monthlyRate > 100) {
+        toast.error("Informe uma taxa de parcelamento mensal válida entre 0 e 100");
+        return;
+      }
+    }
 
     try {
-      await adminFetch("/payments/fees", { method: "POST", body: { machineId, method: draft.method, installments, feePercent } });
+      await adminFetch("/payments/fees", {
+        method: "POST",
+        body: { machineId, method: draft.method, installments, feePercent, monthlyRate },
+      });
       toast.success("Taxa adicionada");
-      setNewFeeDrafts((prev) => ({ ...prev, [machineId]: { method: "credito", installments: "1", feePercent: "" } }));
+      setNewFeeDrafts((prev) => ({ ...prev, [machineId]: { method: "credito", installments: "1", feePercent: "", monthlyRate: "" } }));
       reload();
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "Erro ao adicionar taxa");
@@ -269,7 +290,12 @@ export default function OperadorasPage() {
 
       {machines.map((machine) => {
         const draft = machineDrafts[machine.id] ?? { maxInstallments: "", settlementType: "" };
-        const newFeeDraft = newFeeDrafts[machine.id] ?? { method: "credito" as PaymentMethod, installments: "1", feePercent: "" };
+        const newFeeDraft = newFeeDrafts[machine.id] ?? {
+          method: "credito" as PaymentMethod,
+          installments: "1",
+          feePercent: "",
+          monthlyRate: "",
+        };
 
         return (
           <Card key={machine.id} className={!machine.active ? "opacity-60" : undefined}>
@@ -332,8 +358,11 @@ export default function OperadorasPage() {
                 <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">Taxas</p>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
                   {machine.fees.map((fee) => {
-                    const value = editedFees[fee.id] ?? fee.feePercent;
-                    const hasChange = editedFees[fee.id] !== undefined && editedFees[fee.id] !== fee.feePercent;
+                    const draft = editedFees[fee.id] ?? { feePercent: fee.feePercent, monthlyRate: fee.monthlyRate ?? "" };
+                    const hasChange =
+                      editedFees[fee.id] !== undefined &&
+                      (editedFees[fee.id].feePercent !== fee.feePercent ||
+                        editedFees[fee.id].monthlyRate !== (fee.monthlyRate ?? ""));
 
                     return (
                       <div key={fee.id} className="space-y-1.5 rounded-lg border border-border p-3">
@@ -350,12 +379,27 @@ export default function OperadorasPage() {
                         </div>
                         <div className="flex items-center gap-1">
                           <Input
-                            value={value}
-                            onChange={(e) => setEditedFees((prev) => ({ ...prev, [fee.id]: e.target.value }))}
+                            value={draft.feePercent}
+                            onChange={(e) =>
+                              setEditedFees((prev) => ({ ...prev, [fee.id]: { ...draft, feePercent: e.target.value } }))
+                            }
                             className="h-8"
                           />
                           <span className="text-sm text-muted-foreground">%</span>
                         </div>
+                        {fee.installments > 1 && (
+                          <div className="flex items-center gap-1">
+                            <Input
+                              value={draft.monthlyRate}
+                              onChange={(e) =>
+                                setEditedFees((prev) => ({ ...prev, [fee.id]: { ...draft, monthlyRate: e.target.value } }))
+                              }
+                              placeholder="—"
+                              className="h-8"
+                            />
+                            <span className="whitespace-nowrap text-[11px] text-muted-foreground">%/mês</span>
+                          </div>
+                        )}
                         {hasChange && (
                           <Button
                             size="sm"
@@ -411,6 +455,14 @@ export default function OperadorasPage() {
                         className="h-8"
                       />
                     </div>
+                    <Input
+                      placeholder="Taxa de parcelamento %/mês (opcional)"
+                      value={newFeeDraft.monthlyRate}
+                      onChange={(e) =>
+                        setNewFeeDrafts((prev) => ({ ...prev, [machine.id]: { ...newFeeDraft, monthlyRate: e.target.value } }))
+                      }
+                      className="h-8 text-xs"
+                    />
                     <Button size="sm" variant="outline" className="h-7 w-full gap-1 text-xs" onClick={() => handleAddFee(machine.id)}>
                       <Plus className="size-3" /> Adicionar
                     </Button>

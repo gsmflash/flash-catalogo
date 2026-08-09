@@ -15,6 +15,13 @@
       "when": 1786239281373,
       "tag": "0001_loving_ser_duncan",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786244013556,
+      "tag": "0002_great_frank_castle",
+      "breakpoints": true
     }
   ]
 }

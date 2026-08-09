@@ -69,6 +69,7 @@ paymentsRouter.put(
       .set({
         ...data,
         feePercent: data.feePercent !== undefined ? data.feePercent.toString() : undefined,
+        monthlyRate: data.monthlyRate !== undefined ? (data.monthlyRate === null ? null : data.monthlyRate.toString()) : undefined,
       })
       .where(eq(paymentFees.id, req.params.id))
       .returning();
@@ -85,7 +86,11 @@ paymentsRouter.post(
     const data = paymentFeeSchema.parse(req.body);
     const [created] = await db
       .insert(paymentFees)
-      .values({ ...data, feePercent: data.feePercent.toString() })
+      .values({
+        ...data,
+        feePercent: data.feePercent.toString(),
+        monthlyRate: data.monthlyRate != null ? data.monthlyRate.toString() : null,
+      })
       .returning();
     res.status(201).json(created);
   })

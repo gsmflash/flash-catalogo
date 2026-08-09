@@ -3,13 +3,18 @@ import { db } from "../db/client.js";
 import { paymentFees } from "../db/schema.js";
 import { eq } from "drizzle-orm";
 
-export async function getFeesForMachine(machineId: string): Promise<FeeRow[]> {
-  const rows = await db.select().from(paymentFees).where(eq(paymentFees.machineId, machineId));
-  return rows.map((r) => ({
+function toFeeRow(r: typeof paymentFees.$inferSelect): FeeRow {
+  return {
     method: r.method as FeeRow["method"],
     installments: r.installments,
     feePercent: Number(r.feePercent),
-  }));
+    monthlyRate: r.monthlyRate != null ? Number(r.monthlyRate) : undefined,
+  };
+}
+
+export async function getFeesForMachine(machineId: string): Promise<FeeRow[]> {
+  const rows = await db.select().from(paymentFees).where(eq(paymentFees.machineId, machineId));
+  return rows.map(toFeeRow);
 }
 
 export async function getAllFeesByMachine(): Promise<Map<string, FeeRow[]>> {
@@ -17,7 +22,7 @@ export async function getAllFeesByMachine(): Promise<Map<string, FeeRow[]>> {
   const map = new Map<string, FeeRow[]>();
   for (const r of rows) {
     const list = map.get(r.machineId) ?? [];
-    list.push({ method: r.method as FeeRow["method"], installments: r.installments, feePercent: Number(r.feePercent) });
+    list.push(toFeeRow(r));
     map.set(r.machineId, list);
   }
   return map;
