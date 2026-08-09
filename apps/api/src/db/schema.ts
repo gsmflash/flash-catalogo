@@ -35,6 +35,9 @@ export const paymentMachines = pgTable("payment_machines", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   provider: text("provider").notNull(),
+  active: boolean("active").notNull().default(true),
+  maxInstallments: integer("max_installments"),
+  settlementType: text("settlement_type"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -101,6 +104,32 @@ export const productImages = pgTable(
     productIdx: index("product_images_product_idx").on(table.productId),
   })
 );
+
+export const paymentSimulations = pgTable(
+  "payment_simulations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    machineId: uuid("machine_id").references(() => paymentMachines.id, { onDelete: "set null" }),
+    machineName: text("machine_name").notNull(),
+    method: text("method").notNull(),
+    installments: integer("installments").notNull(),
+    mode: text("mode").notNull(),
+    inputAmount: numeric("input_amount", { precision: 10, scale: 2 }).notNull(),
+    chargeAmount: numeric("charge_amount", { precision: 10, scale: 2 }).notNull(),
+    netAmount: numeric("net_amount", { precision: 10, scale: 2 }).notNull(),
+    feeAmount: numeric("fee_amount", { precision: 10, scale: 2 }).notNull(),
+    feePercent: numeric("fee_percent", { precision: 5, scale: 2 }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    createdAtIdx: index("payment_simulations_created_at_idx").on(table.createdAt),
+    machineIdx: index("payment_simulations_machine_idx").on(table.machineId),
+  })
+);
+
+export const paymentSimulationsRelations = relations(paymentSimulations, ({ one }) => ({
+  machine: one(paymentMachines, { fields: [paymentSimulations.machineId], references: [paymentMachines.id] }),
+}));
 
 export const settings = pgTable("settings", {
   id: text("id").primaryKey().default("default"),

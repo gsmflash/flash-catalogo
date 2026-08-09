@@ -60,6 +60,9 @@ export type ProductInput = z.infer<typeof productSchema>;
 export const paymentMachineSchema = z.object({
   name: z.string().min(1).max(80),
   provider: z.string().min(1).max(80),
+  active: z.boolean().default(true),
+  maxInstallments: z.number().int().min(MIN_INSTALLMENTS).max(MAX_INSTALLMENTS).nullable().optional(),
+  settlementType: z.string().max(60).nullable().optional(),
 });
 export type PaymentMachineInput = z.infer<typeof paymentMachineSchema>;
 
@@ -70,6 +73,23 @@ export const paymentFeeSchema = z.object({
   feePercent: z.number().min(0).max(100),
 });
 export type PaymentFeeInput = z.infer<typeof paymentFeeSchema>;
+
+export const simulationModes = ["charge", "net"] as const;
+export type SimulationMode = (typeof simulationModes)[number];
+
+export const paymentSimulationSchema = z.object({
+  machineId: z.string().uuid().nullable().optional(),
+  machineName: z.string().min(1).max(80),
+  method: z.enum(PAYMENT_METHODS),
+  installments: z.number().int().min(MIN_INSTALLMENTS).max(MAX_INSTALLMENTS),
+  mode: z.enum(simulationModes),
+  inputAmount: z.number().positive(),
+  chargeAmount: z.number().positive(),
+  netAmount: z.number().positive(),
+  feeAmount: z.number().min(0),
+  feePercent: z.number().min(0).max(100),
+});
+export type PaymentSimulationInput = z.infer<typeof paymentSimulationSchema>;
 
 export const settingsSchema = z.object({
   storeName: z.string().min(1).max(120),
@@ -85,6 +105,15 @@ export const settingsSchema = z.object({
     .default("#0ea5e9"),
 });
 export type SettingsInput = z.infer<typeof settingsSchema>;
+
+export const simulationQuerySchema = z.object({
+  machineId: z.string().uuid().optional(),
+  method: z.enum(PAYMENT_METHODS).optional(),
+  q: z.string().max(160).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(30),
+});
+export type SimulationQueryInput = z.infer<typeof simulationQuerySchema>;
 
 export const searchQuerySchema = z.object({
   q: z.string().max(160).optional(),

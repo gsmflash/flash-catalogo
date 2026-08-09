@@ -90,3 +90,14 @@ paymentsRouter.post(
     res.status(201).json(created);
   })
 );
+
+paymentsRouter.delete(
+  "/fees/:id",
+  requireAuth,
+  requireRole("admin"),
+  asyncHandler(async (req, res) => {
+    const [deleted] = await db.delete(paymentFees).where(eq(paymentFees.id, req.params.id)).returning();
+    if (!deleted) throw new HttpError(404, "Taxa não encontrada");
+    res.status(204).send();
+  })
+);

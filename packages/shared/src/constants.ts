@@ -21,8 +21,14 @@ export const PUBLIC_PRODUCT_STATUSES: ProductStatus[] = [
   "em_breve",
 ];
 
-export const PAYMENT_METHODS = ["debito", "credito"] as const;
+export const PAYMENT_METHODS = ["pix", "debito", "credito"] as const;
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  pix: "Pix",
+  debito: "Débito",
+  credito: "Crédito",
+};
 
 export const MIN_INSTALLMENTS = 1;
 export const MAX_INSTALLMENTS = 18;
@@ -44,44 +50,51 @@ export interface DefaultFeeRow {
   feePercent: number;
 }
 
-/** Default InfinitePay fee table (Visa/Mastercard), editable in the admin panel. */
-export const DEFAULT_INFINITEPAY_FEES: DefaultFeeRow[] = [
-  { method: "debito", installments: 1, feePercent: 0.85 },
-  { method: "credito", installments: 1, feePercent: 2.89 },
-  { method: "credito", installments: 2, feePercent: 4.22 },
-  { method: "credito", installments: 3, feePercent: 4.83 },
-  { method: "credito", installments: 4, feePercent: 5.44 },
-  { method: "credito", installments: 5, feePercent: 6.05 },
-  { method: "credito", installments: 6, feePercent: 6.64 },
-  { method: "credito", installments: 7, feePercent: 7.24 },
-  { method: "credito", installments: 8, feePercent: 7.82 },
-  { method: "credito", installments: 9, feePercent: 8.41 },
-  { method: "credito", installments: 10, feePercent: 8.98 },
-  { method: "credito", installments: 11, feePercent: 9.56 },
-  { method: "credito", installments: 12, feePercent: 10.12 },
+/**
+ * Default InfiniteTap fee table (contactless/tap-only), editable in the
+ * admin panel. Pix has no fee since it settles outside the card network.
+ */
+export const DEFAULT_INFINITETAP_FEES: DefaultFeeRow[] = [
+  { method: "pix", installments: 1, feePercent: 0 },
+  { method: "debito", installments: 1, feePercent: 1.37 },
+  { method: "credito", installments: 1, feePercent: 3.15 },
+  { method: "credito", installments: 2, feePercent: 5.39 },
+  { method: "credito", installments: 3, feePercent: 6.12 },
+  { method: "credito", installments: 4, feePercent: 6.85 },
+  { method: "credito", installments: 5, feePercent: 7.57 },
+  { method: "credito", installments: 6, feePercent: 8.28 },
+  { method: "credito", installments: 7, feePercent: 8.99 },
+  { method: "credito", installments: 8, feePercent: 9.69 },
+  { method: "credito", installments: 9, feePercent: 10.38 },
+  { method: "credito", installments: 10, feePercent: 11.06 },
+  { method: "credito", installments: 11, feePercent: 11.74 },
+  { method: "credito", installments: 12, feePercent: 12.4 },
 ];
 
-/** Default Mercado Pago fee table ("Parcelado Vendedor"), editable in the admin panel. */
+/**
+ * Default Mercado Pago fee table: fixed 2.84% sale fee plus an additional
+ * installment surcharge (totals below already include the fixed fee). No
+ * débito or Pix option for this acquirer.
+ */
 export const DEFAULT_MERCADOPAGO_FEES: DefaultFeeRow[] = [
-  { method: "debito", installments: 1, feePercent: 0.98 },
-  { method: "credito", installments: 1, feePercent: 2.99 },
-  { method: "credito", installments: 2, feePercent: 1.7 },
-  { method: "credito", installments: 3, feePercent: 2.55 },
-  { method: "credito", installments: 4, feePercent: 3.4 },
-  { method: "credito", installments: 5, feePercent: 4.25 },
-  { method: "credito", installments: 6, feePercent: 5.1 },
-  { method: "credito", installments: 7, feePercent: 5.95 },
-  { method: "credito", installments: 8, feePercent: 6.8 },
-  { method: "credito", installments: 9, feePercent: 7.65 },
-  { method: "credito", installments: 10, feePercent: 8.5 },
-  { method: "credito", installments: 11, feePercent: 9.35 },
-  { method: "credito", installments: 12, feePercent: 10.2 },
-  { method: "credito", installments: 13, feePercent: 11.05 },
-  { method: "credito", installments: 14, feePercent: 11.9 },
-  { method: "credito", installments: 15, feePercent: 12.75 },
-  { method: "credito", installments: 16, feePercent: 13.6 },
-  { method: "credito", installments: 17, feePercent: 14.45 },
-  { method: "credito", installments: 18, feePercent: 15.3 },
+  { method: "credito", installments: 1, feePercent: 2.84 },
+  { method: "credito", installments: 2, feePercent: 4.54 },
+  { method: "credito", installments: 3, feePercent: 5.39 },
+  { method: "credito", installments: 4, feePercent: 6.24 },
+  { method: "credito", installments: 5, feePercent: 7.09 },
+  { method: "credito", installments: 6, feePercent: 7.94 },
+  { method: "credito", installments: 7, feePercent: 8.79 },
+  { method: "credito", installments: 8, feePercent: 9.64 },
+  { method: "credito", installments: 9, feePercent: 10.49 },
+  { method: "credito", installments: 10, feePercent: 11.34 },
+  { method: "credito", installments: 11, feePercent: 12.19 },
+  { method: "credito", installments: 12, feePercent: 13.04 },
+  { method: "credito", installments: 13, feePercent: 13.89 },
+  { method: "credito", installments: 14, feePercent: 14.74 },
+  { method: "credito", installments: 15, feePercent: 15.59 },
+  { method: "credito", installments: 16, feePercent: 16.44 },
+  { method: "credito", installments: 17, feePercent: 17.29 },
+  { method: "credito", installments: 18, feePercent: 18.14 },
 ];
 
 /**
@@ -93,8 +106,25 @@ export const DEFAULT_MERCADOPAGO_FEES: DefaultFeeRow[] = [
 export const DEFAULT_PAYMENT_MACHINES: Array<{
   name: string;
   provider: string;
+  active: boolean;
+  maxInstallments: number;
+  settlementType: string;
   fees: DefaultFeeRow[];
 }> = [
-  { name: "InfinitePay", provider: "InfinitePay", fees: DEFAULT_INFINITEPAY_FEES },
-  { name: "Mercado Pago", provider: "Mercado Pago", fees: DEFAULT_MERCADOPAGO_FEES },
+  {
+    name: "InfiniteTap",
+    provider: "InfinitePay",
+    active: true,
+    maxInstallments: 12,
+    settlementType: "Aproximação (Infinite Tap)",
+    fees: DEFAULT_INFINITETAP_FEES,
+  },
+  {
+    name: "Mercado Pago",
+    provider: "Mercado Pago",
+    active: true,
+    maxInstallments: 18,
+    settlementType: "Maquininha e Link de Pagamento",
+    fees: DEFAULT_MERCADOPAGO_FEES,
+  },
 ];

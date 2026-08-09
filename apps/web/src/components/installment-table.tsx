@@ -16,12 +16,19 @@ export function InstallmentTable({ pricing }: { pricing: InstallmentOption[] }) 
                 key={`${option.method}-${option.installments}`}
                 className={cn(
                   "border-b border-border/70 last:border-0",
+                  option.method === "pix" && "bg-secondary/50",
                   option.installments === 1 && option.method === "credito" && "bg-secondary/50",
                   isBest && "bg-primary/5"
                 )}
               >
                 <td className="px-4 py-2.5 text-muted-foreground">
-                  {option.method === "debito" ? "Débito" : option.installments === 1 ? "Crédito à vista" : `${option.installments}x no cartão`}
+                  {option.method === "pix"
+                    ? "Pix"
+                    : option.method === "debito"
+                      ? "Débito"
+                      : option.installments === 1
+                        ? "Crédito à vista"
+                        : `${option.installments}x no cartão`}
                 </td>
                 <td className={cn("px-4 py-2.5 text-right font-semibold", isBest && "text-primary")}>
                   {option.installments === 1 ? formatBRL(option.total) : `${formatBRL(option.perInstallment)}/mês`}
