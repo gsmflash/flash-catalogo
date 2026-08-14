@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { financialLoanSchema, generateLoanInstallments, summarizeLoan } from "@flashcell/shared";
 import { db } from "../db/client.js";
 import { financialCategories, financialLoans, financialTransactions } from "../db/schema.js";
@@ -64,7 +64,7 @@ financialLoansRouter.get(
     const installments = await db
       .select()
       .from(financialTransactions)
-      .where(eq(financialTransactions.loanId, req.params.id))
+      .where(and(eq(financialTransactions.loanId, req.params.id), eq(financialTransactions.type, "saida")))
       .orderBy(asc(financialTransactions.installmentNumber));
 
     const summary = summarizeLoan(installments.map((i) => ({ amount: i.amount, paid: i.paid, dueDate: i.dueDate })));
