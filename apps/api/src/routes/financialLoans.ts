@@ -81,63 +81,65 @@ financialLoansRouter.post(
   "/",
   asyncHandler(async (req, res) => {
     const data = financialLoanSchema.parse(req.body);
-
-    const [loan] = await db
-      .insert(financialLoans)
-      .values({
-        description: data.description,
-        principalAmount: data.principalAmount.toString(),
-        receivedDate: data.receivedDate,
-        installmentsCount: 0,
-        installmentAmount: data.installmentAmount.toString(),
-        frequency: data.frequency,
-        firstDueDate: data.firstDueDate,
-        totalToPay: data.totalToPay.toString(),
-        interestAmount: data.interestAmount != null ? data.interestAmount.toString() : null,
-        status: data.status,
-        accountId: data.accountId ?? null,
-      })
-      .returning();
-
-    const entradaCategoryId = await entradaFinanciamentoCategoryId();
-    await db.insert(financialTransactions).values({
-      type: "entrada",
-      scope: data.scope,
-      description: `Empréstimo recebido: ${data.description}`,
-      amount: data.principalAmount.toString(),
-      categoryId: entradaCategoryId,
-      date: data.receivedDate,
-      paid: true,
-      accountId: data.accountId ?? null,
-      isFinancing: true,
-      loanId: loan.id,
-    });
-
-    const installmentCategoryId = await loanCategoryId(data.scope);
+    const [entradaCategoryId, installmentCategoryId] = await Promise.all([
+      entradaFinanciamentoCategoryId(),
+      loanCategoryId(data.scope),
+    ]);
     const installments = generateLoanInstallments(data.totalToPay, data.installmentAmount, data.firstDueDate, data.frequency);
 
-    if (installments.length > 0) {
-      await db.insert(financialTransactions).values(
-        installments.map((inst) => ({
-          type: "saida" as const,
-          scope: data.scope,
-          description: `${data.description} — parcela ${inst.installmentNumber}/${installments.length}`,
-          amount: inst.amount.toString(),
-          categoryId: installmentCategoryId,
-          date: inst.dueDate,
-          dueDate: inst.dueDate,
-          paid: false,
-          loanId: loan.id,
-          installmentNumber: inst.installmentNumber,
-        }))
-      );
-    }
+    // Cabeçalho + entrada de financiamento + todas as parcelas são criados
+    // atomicamente: se qualquer inserção falhar, nada fica gravado (evita um
+    // empréstimo "fantasma" sem parcelas ou com a contagem desatualizada).
+    const updatedLoan = await db.transaction(async (tx) => {
+      const [loan] = await tx
+        .insert(financialLoans)
+        .values({
+          description: data.description,
+          principalAmount: data.principalAmount.toString(),
+          receivedDate: data.receivedDate,
+          installmentsCount: installments.length,
+          installmentAmount: data.installmentAmount.toString(),
+          frequency: data.frequency,
+          firstDueDate: data.firstDueDate,
+          totalToPay: data.totalToPay.toString(),
+          interestAmount: data.interestAmount != null ? data.interestAmount.toString() : null,
+          status: data.status,
+          accountId: data.accountId ?? null,
+        })
+        .returning();
 
-    const [updatedLoan] = await db
-      .update(financialLoans)
-      .set({ installmentsCount: installments.length })
-      .where(eq(financialLoans.id, loan.id))
-      .returning();
+      await tx.insert(financialTransactions).values({
+        type: "entrada",
+        scope: data.scope,
+        description: `Empréstimo recebido: ${data.description}`,
+        amount: data.principalAmount.toString(),
+        categoryId: entradaCategoryId,
+        date: data.receivedDate,
+        paid: true,
+        accountId: data.accountId ?? null,
+        isFinancing: true,
+        loanId: loan.id,
+      });
+
+      if (installments.length > 0) {
+        await tx.insert(financialTransactions).values(
+          installments.map((inst) => ({
+            type: "saida" as const,
+            scope: data.scope,
+            description: `${data.description} — parcela ${inst.installmentNumber}/${installments.length}`,
+            amount: inst.amount.toString(),
+            categoryId: installmentCategoryId,
+            date: inst.dueDate,
+            dueDate: inst.dueDate,
+            paid: false,
+            loanId: loan.id,
+            installmentNumber: inst.installmentNumber,
+          }))
+        );
+      }
+
+      return loan;
+    });
 
     res.status(201).json(updatedLoan);
   })

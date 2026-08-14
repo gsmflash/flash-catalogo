@@ -120,37 +120,51 @@ financialTransactionsRouter.patch(
     const [current] = await db.select().from(financialTransactions).where(eq(financialTransactions.id, req.params.id)).limit(1);
     if (!current) throw new HttpError(404, "Lançamento não encontrado");
 
-    const [updated] = await db
-      .update(financialTransactions)
-      .set({ paid: true, updatedAt: new Date() })
-      .where(eq(financialTransactions.id, req.params.id))
-      .returning();
-
-    let nextOccurrence = null;
-    if (current.recurring && current.dueDate) {
-      const nextDue = new Date(current.dueDate);
-      nextDue.setMonth(nextDue.getMonth() + 1);
-      if (current.recurrenceDay) nextDue.setDate(current.recurrenceDay);
-
-      [nextOccurrence] = await db
-        .insert(financialTransactions)
-        .values({
-          type: current.type,
-          scope: current.scope,
-          description: current.description,
-          amount: current.amount,
-          categoryId: current.categoryId,
-          date: nextDue,
-          dueDate: nextDue,
-          paid: false,
-          method: current.method,
-          accountId: current.accountId,
-          note: current.note,
-          recurring: true,
-          recurrenceDay: current.recurrenceDay,
-        })
-        .returning();
+    // Idempotente: se já estava pago, não gera outra ocorrência recorrente
+    // (protege contra duplo clique/retry criando duas parcelas do mês seguinte).
+    if (current.paid) {
+      res.json({ transaction: current, nextOccurrence: null });
+      return;
     }
+
+    const { updated, nextOccurrence } = await db.transaction(async (tx) => {
+      const [updatedRow] = await tx
+        .update(financialTransactions)
+        .set({ paid: true, updatedAt: new Date() })
+        .where(and(eq(financialTransactions.id, req.params.id), eq(financialTransactions.paid, false)))
+        .returning();
+
+      // Outra requisição já pagou entre o SELECT e aqui — nada mais a fazer.
+      if (!updatedRow) return { updated: current, nextOccurrence: null };
+
+      let nextOccurrenceRow = null;
+      if (current.recurring && current.dueDate) {
+        const nextDue = new Date(current.dueDate);
+        nextDue.setMonth(nextDue.getMonth() + 1);
+        if (current.recurrenceDay) nextDue.setDate(current.recurrenceDay);
+
+        [nextOccurrenceRow] = await tx
+          .insert(financialTransactions)
+          .values({
+            type: current.type,
+            scope: current.scope,
+            description: current.description,
+            amount: current.amount,
+            categoryId: current.categoryId,
+            date: nextDue,
+            dueDate: nextDue,
+            paid: false,
+            method: current.method,
+            accountId: current.accountId,
+            note: current.note,
+            recurring: true,
+            recurrenceDay: current.recurrenceDay,
+          })
+          .returning();
+      }
+
+      return { updated: updatedRow, nextOccurrence: nextOccurrenceRow };
+    });
 
     res.json({ transaction: updated, nextOccurrence });
   })
