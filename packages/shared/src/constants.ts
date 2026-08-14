@@ -221,10 +221,21 @@ export const DEFAULT_FINANCIAL_CATEGORIES: Array<{ name: string; kind: Financial
   { name: "Cartão", kind: "saida_pessoal", sortOrder: 4 },
   { name: "Lazer", kind: "saida_pessoal", sortOrder: 5 },
   { name: "Roupas", kind: "saida_pessoal", sortOrder: 6 },
-  { name: "Viagem", kind: "saida_pessoal", sortOrder: 7 },
-  { name: "Empréstimo", kind: "saida_pessoal", sortOrder: 8 },
-  { name: "Outros", kind: "saida_pessoal", sortOrder: 9 },
+  // Categoria específica de viagem (item 8) — prefixo "Viagem -" usado para
+  // somar o gasto de uma reserva de viagem sem precisar de tabela própria.
+  { name: "Viagem - Passagem", kind: "saida_pessoal", sortOrder: 7 },
+  { name: "Viagem - Hospedagem", kind: "saida_pessoal", sortOrder: 8 },
+  { name: "Viagem - Alimentação", kind: "saida_pessoal", sortOrder: 9 },
+  { name: "Viagem - Passeios", kind: "saida_pessoal", sortOrder: 10 },
+  { name: "Viagem - Compras", kind: "saida_pessoal", sortOrder: 11 },
+  { name: "Viagem - Transporte", kind: "saida_pessoal", sortOrder: 12 },
+  { name: "Viagem - Reserva de emergência", kind: "saida_pessoal", sortOrder: 13 },
+  { name: "Empréstimo", kind: "saida_pessoal", sortOrder: 14 },
+  { name: "Outros", kind: "saida_pessoal", sortOrder: 15 },
 ];
+
+/** Prefixo usado para identificar categorias de despesa de viagem (ver Reservas). */
+export const TRAVEL_CATEGORY_PREFIX = "Viagem - ";
 
 export const FINANCIAL_METHODS = ["dinheiro", "pix", "debito", "credito", "crediarista", "transferencia", "outro"] as const;
 export type FinancialMethod = (typeof FINANCIAL_METHODS)[number];

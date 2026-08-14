@@ -235,3 +235,70 @@ financialDashboardRouter.get(
     });
   })
 );
+
+const STOCK_CATEGORIES = ["Compra de aparelhos", "Compra de acessórios"];
+const FOOD_CATEGORIES = ["Alimentação"];
+const FUEL_CATEGORIES = ["Combustível", "Combustível pessoal"];
+
+async function buildMonthlyReport(monthStart: Date, monthEnd: Date) {
+  const [monthTotals, pending] = await Promise.all([getMonthTotals(monthStart, monthEnd), getPendingTotals(new Date())]);
+
+  const rows = await db.query.financialTransactions.findMany({
+    where: and(gte(financialTransactions.date, monthStart), lte(financialTransactions.date, monthEnd)),
+    with: { category: true },
+  });
+
+  let comprasEstoque = 0;
+  let gastosAlimentacao = 0;
+  let combustivel = 0;
+  let emprestimos = 0;
+  let contasPagas = 0;
+
+  for (const row of rows) {
+    if (row.type !== "saida" || !row.paid) continue;
+    const amount = n(row.amount);
+    const categoryName = row.category?.name ?? "";
+    if (STOCK_CATEGORIES.includes(categoryName)) comprasEstoque += amount;
+    if (FOOD_CATEGORIES.includes(categoryName)) gastosAlimentacao += amount;
+    if (FUEL_CATEGORIES.includes(categoryName)) combustivel += amount;
+    if (row.loanId) emprestimos += amount;
+    if (row.dueDate) contasPagas += amount;
+  }
+
+  return {
+    entradas: monthTotals.entradas,
+    saidas: monthTotals.saidas,
+    lucroLiquido: monthTotals.lucroLiquido,
+    gastosEmpresa: monthTotals.saidasEmpresa,
+    gastosPessoal: monthTotals.saidasPessoal,
+    comprasEstoque: round2(comprasEstoque),
+    gastosAlimentacao: round2(gastosAlimentacao),
+    combustivel: round2(combustivel),
+    emprestimos: round2(emprestimos),
+    contasPagas: round2(contasPagas),
+    contasPendentes: pending.contasAPagar,
+    valoresAReceber: pending.contasAReceber,
+    valorInvestidoEmEstoque: round2(comprasEstoque),
+  };
+}
+
+financialDashboardRouter.get(
+  "/report",
+  asyncHandler(async (req, res) => {
+    const monthParam = typeof req.query.month === "string" ? req.query.month : null;
+    const now = new Date();
+    const [year, month] = monthParam ? monthParam.split("-").map(Number) : [now.getFullYear(), now.getMonth() + 1];
+
+    const currentStart = new Date(year, month - 1, 1);
+    const currentEnd = new Date(year, month, 0, 23, 59, 59, 999);
+    const previousStart = new Date(year, month - 2, 1);
+    const previousEnd = new Date(year, month - 1, 0, 23, 59, 59, 999);
+
+    const [current, previous] = await Promise.all([
+      buildMonthlyReport(currentStart, currentEnd),
+      buildMonthlyReport(previousStart, previousEnd),
+    ]);
+
+    res.json({ month: `${year}-${String(month).padStart(2, "0")}`, current, previous });
+  })
+);
