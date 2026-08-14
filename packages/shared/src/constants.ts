@@ -171,3 +171,101 @@ export const DEFAULT_PAYMENT_MACHINES: Array<{
     fees: DEFAULT_PAGBANK_FEES,
   },
 ];
+
+// ---------------------------------------------------------------------------
+// Financeiro / Fluxo de Caixa
+// ---------------------------------------------------------------------------
+
+export const FINANCIAL_TRANSACTION_TYPES = ["entrada", "saida", "transferencia"] as const;
+export type FinancialTransactionType = (typeof FINANCIAL_TRANSACTION_TYPES)[number];
+
+export const FINANCIAL_SCOPES = ["empresa", "pessoal"] as const;
+export type FinancialScope = (typeof FINANCIAL_SCOPES)[number];
+export const FINANCIAL_SCOPE_LABELS: Record<FinancialScope, string> = {
+  empresa: "Empresa",
+  pessoal: "Pessoal",
+};
+
+export const FINANCIAL_CATEGORY_KINDS = ["entrada", "saida_empresa", "saida_pessoal"] as const;
+export type FinancialCategoryKind = (typeof FINANCIAL_CATEGORY_KINDS)[number];
+
+/** Seeded on first install; fully editable afterwards via /financeiro/configuracoes. */
+export const DEFAULT_FINANCIAL_CATEGORIES: Array<{ name: string; kind: FinancialCategoryKind; sortOrder: number }> = [
+  // Entradas
+  { name: "Venda de celular", kind: "entrada", sortOrder: 1 },
+  { name: "Venda de tablet", kind: "entrada", sortOrder: 2 },
+  { name: "Venda de acessórios", kind: "entrada", sortOrder: 3 },
+  { name: "Assistência técnica", kind: "entrada", sortOrder: 4 },
+  { name: "Película", kind: "entrada", sortOrder: 5 },
+  { name: "Capinha", kind: "entrada", sortOrder: 6 },
+  { name: "Empréstimo/Financiamento", kind: "entrada", sortOrder: 7 },
+  { name: "Outros", kind: "entrada", sortOrder: 8 },
+  // Saídas — Empresa
+  { name: "Compra de aparelhos", kind: "saida_empresa", sortOrder: 1 },
+  { name: "Compra de acessórios", kind: "saida_empresa", sortOrder: 2 },
+  { name: "Fornecedor", kind: "saida_empresa", sortOrder: 3 },
+  { name: "Aluguel da loja", kind: "saida_empresa", sortOrder: 4 },
+  { name: "Energia da loja", kind: "saida_empresa", sortOrder: 5 },
+  { name: "Funcionária", kind: "saida_empresa", sortOrder: 6 },
+  { name: "Internet", kind: "saida_empresa", sortOrder: 7 },
+  { name: "Marketing", kind: "saida_empresa", sortOrder: 8 },
+  { name: "Combustível", kind: "saida_empresa", sortOrder: 9 },
+  { name: "Manutenção", kind: "saida_empresa", sortOrder: 10 },
+  { name: "Impostos", kind: "saida_empresa", sortOrder: 11 },
+  { name: "Empréstimo", kind: "saida_empresa", sortOrder: 12 },
+  { name: "Outros", kind: "saida_empresa", sortOrder: 13 },
+  // Saídas — Pessoal
+  { name: "Alimentação", kind: "saida_pessoal", sortOrder: 1 },
+  { name: "Combustível pessoal", kind: "saida_pessoal", sortOrder: 2 },
+  { name: "Casa", kind: "saida_pessoal", sortOrder: 3 },
+  { name: "Cartão", kind: "saida_pessoal", sortOrder: 4 },
+  { name: "Lazer", kind: "saida_pessoal", sortOrder: 5 },
+  { name: "Roupas", kind: "saida_pessoal", sortOrder: 6 },
+  { name: "Viagem", kind: "saida_pessoal", sortOrder: 7 },
+  { name: "Empréstimo", kind: "saida_pessoal", sortOrder: 8 },
+  { name: "Outros", kind: "saida_pessoal", sortOrder: 9 },
+];
+
+export const FINANCIAL_METHODS = ["dinheiro", "pix", "debito", "credito", "crediarista", "transferencia", "outro"] as const;
+export type FinancialMethod = (typeof FINANCIAL_METHODS)[number];
+export const FINANCIAL_METHOD_LABELS: Record<FinancialMethod, string> = {
+  dinheiro: "Dinheiro",
+  pix: "Pix",
+  debito: "Débito",
+  credito: "Crédito",
+  crediarista: "Crediarista",
+  transferencia: "Transferência",
+  outro: "Outro",
+};
+
+export const FINANCIAL_ACCOUNT_TYPES = ["caixa", "banco", "pix", "pessoal", "empresa", "reserva", "outro"] as const;
+export type FinancialAccountType = (typeof FINANCIAL_ACCOUNT_TYPES)[number];
+export const FINANCIAL_ACCOUNT_TYPE_LABELS: Record<FinancialAccountType, string> = {
+  caixa: "Caixa físico",
+  banco: "Banco",
+  pix: "Pix",
+  pessoal: "Conta pessoal",
+  empresa: "Conta da empresa",
+  reserva: "Dinheiro reservado",
+  outro: "Outro",
+};
+
+/** Default carteiras seeded on first install. */
+export const DEFAULT_FINANCIAL_ACCOUNTS: Array<{ name: string; type: FinancialAccountType }> = [
+  { name: "Caixa da loja", type: "caixa" },
+  { name: "Banco (empresa)", type: "banco" },
+  { name: "Pix", type: "pix" },
+];
+
+export const LOAN_FREQUENCIES = ["diaria", "diaria_seg_sab", "semanal", "quinzenal", "mensal"] as const;
+export type LoanFrequency = (typeof LOAN_FREQUENCIES)[number];
+export const LOAN_FREQUENCY_LABELS: Record<LoanFrequency, string> = {
+  diaria: "Diária",
+  diaria_seg_sab: "Diária (segunda a sábado)",
+  semanal: "Semanal",
+  quinzenal: "Quinzenal",
+  mensal: "Mensal",
+};
+
+export const LOAN_STATUSES = ["ativo", "quitado"] as const;
+export type LoanStatus = (typeof LOAN_STATUSES)[number];

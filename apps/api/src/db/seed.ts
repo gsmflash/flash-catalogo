@@ -1,9 +1,9 @@
 import bcrypt from "bcryptjs";
-import { DEFAULT_CATEGORIES, DEFAULT_PAYMENT_MACHINES } from "@flashcell/shared";
+import { DEFAULT_CATEGORIES, DEFAULT_FINANCIAL_ACCOUNTS, DEFAULT_FINANCIAL_CATEGORIES, DEFAULT_PAYMENT_MACHINES } from "@flashcell/shared";
 import { env } from "../env.js";
 import { db, pool } from "./client.js";
-import { categories, paymentFees, paymentMachines, settings, users } from "./schema.js";
-import { eq } from "drizzle-orm";
+import { categories, financialAccounts, financialCategories, paymentFees, paymentMachines, settings, users } from "./schema.js";
+import { and, eq } from "drizzle-orm";
 
 async function main() {
   console.log("Seedando banco de dados...");
@@ -52,6 +52,26 @@ async function main() {
 
     console.log(`Máquina "${machineDef.name}" pronta (${machineDef.fees.length} taxas).`);
   }
+
+  for (const cat of DEFAULT_FINANCIAL_CATEGORIES) {
+    const [existing] = await db
+      .select()
+      .from(financialCategories)
+      .where(and(eq(financialCategories.name, cat.name), eq(financialCategories.kind, cat.kind)))
+      .limit(1);
+    if (!existing) await db.insert(financialCategories).values(cat);
+  }
+  console.log(`Categorias financeiras prontas (${DEFAULT_FINANCIAL_CATEGORIES.length}).`);
+
+  for (const acc of DEFAULT_FINANCIAL_ACCOUNTS) {
+    const [existing] = await db
+      .select()
+      .from(financialAccounts)
+      .where(and(eq(financialAccounts.name, acc.name), eq(financialAccounts.type, acc.type)))
+      .limit(1);
+    if (!existing) await db.insert(financialAccounts).values(acc);
+  }
+  console.log(`Carteiras financeiras prontas (${DEFAULT_FINANCIAL_ACCOUNTS.length}).`);
 
   await db
     .insert(settings)

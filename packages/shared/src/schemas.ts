@@ -1,5 +1,18 @@
 import { z } from "zod";
-import { MAX_INSTALLMENTS, MIN_INSTALLMENTS, PAYMENT_METHODS, PRODUCT_STATUSES, USER_ROLES } from "./constants.js";
+import {
+  FINANCIAL_ACCOUNT_TYPES,
+  FINANCIAL_CATEGORY_KINDS,
+  FINANCIAL_METHODS,
+  FINANCIAL_SCOPES,
+  FINANCIAL_TRANSACTION_TYPES,
+  LOAN_FREQUENCIES,
+  LOAN_STATUSES,
+  MAX_INSTALLMENTS,
+  MIN_INSTALLMENTS,
+  PAYMENT_METHODS,
+  PRODUCT_STATUSES,
+  USER_ROLES,
+} from "./constants.js";
 
 export const slugSchema = z
   .string()
@@ -120,6 +133,120 @@ export const simulationQuerySchema = z.object({
   pageSize: z.coerce.number().int().min(1).max(100).default(30),
 });
 export type SimulationQueryInput = z.infer<typeof simulationQuerySchema>;
+
+// ---------------------------------------------------------------------------
+// Financeiro / Fluxo de Caixa
+// ---------------------------------------------------------------------------
+
+export const financialAccountSchema = z.object({
+  name: z.string().min(1).max(80),
+  type: z.enum(FINANCIAL_ACCOUNT_TYPES),
+  active: z.boolean().default(true),
+});
+export type FinancialAccountInput = z.infer<typeof financialAccountSchema>;
+
+export const financialCategorySchema = z.object({
+  name: z.string().min(1).max(80),
+  kind: z.enum(FINANCIAL_CATEGORY_KINDS),
+  sortOrder: z.number().int().min(0).default(0),
+  active: z.boolean().default(true),
+});
+export type FinancialCategoryInput = z.infer<typeof financialCategorySchema>;
+
+export const financialTransactionSchema = z
+  .object({
+    type: z.enum(FINANCIAL_TRANSACTION_TYPES),
+    scope: z.enum(FINANCIAL_SCOPES).default("empresa"),
+    description: z.string().min(1).max(200),
+    amount: z.number().positive(),
+    grossAmount: z.number().positive().nullable().optional(),
+    feePercent: z.number().min(0).max(100).nullable().optional(),
+    categoryId: z.string().uuid().nullable().optional(),
+    date: z.coerce.date(),
+    dueDate: z.coerce.date().nullable().optional(),
+    paid: z.boolean().default(true),
+    method: z.enum(FINANCIAL_METHODS).nullable().optional(),
+    accountId: z.string().uuid().nullable().optional(),
+    clientName: z.string().max(120).nullable().optional(),
+    productId: z.string().uuid().nullable().optional(),
+    costAmount: z.number().min(0).nullable().optional(),
+    note: z.string().max(1000).nullable().optional(),
+    recurring: z.boolean().default(false),
+    recurrenceDay: z.number().int().min(1).max(31).nullable().optional(),
+    reserveId: z.string().uuid().nullable().optional(),
+    reserveDirection: z.enum(["deposito", "retirada"]).nullable().optional(),
+  })
+  .refine((data) => data.type !== "transferencia" || (data.reserveId && data.reserveDirection), {
+    message: "Transferências precisam de reserva e direção (depósito/retirada)",
+    path: ["reserveId"],
+  })
+  .refine((data) => data.type === "transferencia" || !!data.categoryId, {
+    message: "Categoria é obrigatória para entradas e saídas",
+    path: ["categoryId"],
+  });
+export type FinancialTransactionInput = z.infer<typeof financialTransactionSchema>;
+
+export const financialTransactionQuerySchema = z.object({
+  type: z.enum(FINANCIAL_TRANSACTION_TYPES).optional(),
+  scope: z.enum(FINANCIAL_SCOPES).optional(),
+  categoryId: z.string().uuid().optional(),
+  paid: z.coerce.boolean().optional(),
+  method: z.enum(FINANCIAL_METHODS).optional(),
+  accountId: z.string().uuid().optional(),
+  loanId: z.string().uuid().optional(),
+  reserveId: z.string().uuid().optional(),
+  hasDueDate: z.coerce.boolean().optional(),
+  dateFrom: z.coerce.date().optional(),
+  dateTo: z.coerce.date().optional(),
+  q: z.string().max(160).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(200).default(50),
+});
+export type FinancialTransactionQueryInput = z.infer<typeof financialTransactionQuerySchema>;
+
+export const financialReserveSchema = z.object({
+  name: z.string().min(1).max(120),
+  goalAmount: z.number().positive(),
+  deadline: z.coerce.date().nullable().optional(),
+  note: z.string().max(500).nullable().optional(),
+});
+export type FinancialReserveInput = z.infer<typeof financialReserveSchema>;
+
+export const financialReserveTransferSchema = z.object({
+  reserveId: z.string().uuid(),
+  accountId: z.string().uuid().nullable().optional(),
+  amount: z.number().positive(),
+  direction: z.enum(["deposito", "retirada"]),
+  date: z.coerce.date().default(() => new Date()),
+  note: z.string().max(500).nullable().optional(),
+});
+export type FinancialReserveTransferInput = z.infer<typeof financialReserveTransferSchema>;
+
+export const financialLoanSchema = z.object({
+  description: z.string().min(1).max(160),
+  scope: z.enum(FINANCIAL_SCOPES).default("empresa"),
+  principalAmount: z.number().positive(),
+  receivedDate: z.coerce.date(),
+  installmentAmount: z.number().positive(),
+  totalToPay: z.number().positive(),
+  interestAmount: z.number().min(0).nullable().optional(),
+  frequency: z.enum(LOAN_FREQUENCIES),
+  firstDueDate: z.coerce.date(),
+  accountId: z.string().uuid().nullable().optional(),
+  status: z.enum(LOAN_STATUSES).default("ativo"),
+});
+export type FinancialLoanInput = z.infer<typeof financialLoanSchema>;
+
+export const financialBudgetSchema = z.object({
+  categoryId: z.string().uuid(),
+  limitAmount: z.number().positive(),
+});
+export type FinancialBudgetInput = z.infer<typeof financialBudgetSchema>;
+
+export const financialSettingsSchema = z.object({
+  dailyPersonalLimit: z.number().min(0).nullable().optional(),
+});
+export type FinancialSettingsInput = z.infer<typeof financialSettingsSchema>;
 
 export const searchQuerySchema = z.object({
   q: z.string().max(160).optional(),

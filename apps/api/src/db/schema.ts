@@ -132,6 +132,154 @@ export const paymentSimulationsRelations = relations(paymentSimulations, ({ one 
   machine: one(paymentMachines, { fields: [paymentSimulations.machineId], references: [paymentMachines.id] }),
 }));
 
+// ---------------------------------------------------------------------------
+// Financeiro / Fluxo de Caixa
+// ---------------------------------------------------------------------------
+
+/** "Carteiras": caixa físico, banco, Pix, conta pessoal, conta da empresa... */
+export const financialAccounts = pgTable("financial_accounts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  type: text("type").notNull(),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Categorias de entrada/saída-empresa/saída-pessoal, seedadas e editáveis. */
+export const financialCategories = pgTable("financial_categories", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  kind: text("kind").notNull(), // "entrada" | "saida_empresa" | "saida_pessoal"
+  sortOrder: integer("sort_order").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+});
+
+/** Metas/reservas (inclui a viagem, que é só uma reserva com categorias próprias). */
+export const financialReserves = pgTable("financial_reserves", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  goalAmount: numeric("goal_amount", { precision: 12, scale: 2 }).notNull(),
+  deadline: timestamp("deadline", { withTimezone: true }),
+  note: text("note"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Cabeçalho do empréstimo — as parcelas são linhas de financial_transactions (loanId). */
+export const financialLoans = pgTable("financial_loans", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  description: text("description").notNull(),
+  principalAmount: numeric("principal_amount", { precision: 12, scale: 2 }).notNull(),
+  receivedDate: timestamp("received_date", { withTimezone: true }).notNull(),
+  installmentsCount: integer("installments_count").notNull(),
+  installmentAmount: numeric("installment_amount", { precision: 12, scale: 2 }).notNull(),
+  frequency: text("frequency").notNull(), // "diaria_seg_sab" | "diaria" | "semanal" | "quinzenal" | "mensal"
+  firstDueDate: timestamp("first_due_date", { withTimezone: true }).notNull(),
+  totalToPay: numeric("total_to_pay", { precision: 12, scale: 2 }).notNull(),
+  interestAmount: numeric("interest_amount", { precision: 12, scale: 2 }),
+  status: text("status").notNull().default("ativo"), // "ativo" | "quitado"
+  accountId: uuid("account_id").references(() => financialAccounts.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Limite diário de gastos pessoais — mesmo padrão de linha única da tabela `settings`. */
+export const financialSettings = pgTable("financial_settings", {
+  id: text("id").primaryKey().default("default"),
+  dailyPersonalLimit: numeric("daily_personal_limit", { precision: 12, scale: 2 }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Limite mensal de orçamento por categoria. */
+export const financialBudgets = pgTable(
+  "financial_budgets",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    categoryId: uuid("category_id")
+      .notNull()
+      .references(() => financialCategories.id, { onDelete: "cascade" }),
+    limitAmount: numeric("limit_amount", { precision: 12, scale: 2 }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    categoryIdx: uniqueIndex("financial_budgets_category_unique").on(table.categoryId),
+  })
+);
+
+/**
+ * The core ledger: entradas, saídas, contas a pagar (saída + dueDate + !paid),
+ * contas a receber (entrada + dueDate + !paid), parcelas de empréstimo (loanId set)
+ * and transferências entre contas/reservas are all rows here — one entity, filtered
+ * differently per screen, instead of near-duplicate tables per section of the module.
+ */
+export const financialTransactions = pgTable(
+  "financial_transactions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    type: text("type").notNull(), // "entrada" | "saida" | "transferencia"
+    scope: text("scope").notNull().default("empresa"), // "empresa" | "pessoal" (saídas)
+    description: text("description").notNull(),
+    amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+    /** Valor bruto antes da taxa (contas a receber com desconto de taxa). */
+    grossAmount: numeric("gross_amount", { precision: 12, scale: 2 }),
+    feePercent: numeric("fee_percent", { precision: 5, scale: 2 }),
+    /** Nulo apenas para transferências (não têm categoria). */
+    categoryId: uuid("category_id").references(() => financialCategories.id, { onDelete: "restrict" }),
+    date: timestamp("date", { withTimezone: true }).notNull(),
+    dueDate: timestamp("due_date", { withTimezone: true }),
+    paid: boolean("paid").notNull().default(true),
+    method: text("method"), // dinheiro | pix | debito | credito | crediarista | transferencia | outro
+    accountId: uuid("account_id").references(() => financialAccounts.id, { onDelete: "set null" }),
+    clientName: text("client_name"),
+    productId: uuid("product_id").references(() => products.id, { onDelete: "set null" }),
+    /** Custo do produto vendido (digitado manualmente — o catálogo não tem custo cadastrado). */
+    costAmount: numeric("cost_amount", { precision: 12, scale: 2 }),
+    note: text("note"),
+    recurring: boolean("recurring").notNull().default(false),
+    recurrenceDay: integer("recurrence_day"),
+    /** true apenas para a entrada do principal de um empréstimo — não conta como lucro. */
+    isFinancing: boolean("is_financing").notNull().default(false),
+    reserveId: uuid("reserve_id").references(() => financialReserves.id, { onDelete: "set null" }),
+    /** Para transferências: "deposito" soma na reserva, "retirada" subtrai. */
+    reserveDirection: text("reserve_direction"),
+    loanId: uuid("loan_id").references(() => financialLoans.id, { onDelete: "set null" }),
+    installmentNumber: integer("installment_number"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    dateIdx: index("financial_transactions_date_idx").on(table.date),
+    dueDateIdx: index("financial_transactions_due_date_idx").on(table.dueDate),
+    typeIdx: index("financial_transactions_type_idx").on(table.type),
+    categoryIdx: index("financial_transactions_category_idx").on(table.categoryId),
+    loanIdx: index("financial_transactions_loan_idx").on(table.loanId),
+    reserveIdx: index("financial_transactions_reserve_idx").on(table.reserveId),
+  })
+);
+
+export const financialAccountsRelations = relations(financialAccounts, ({ many }) => ({
+  transactions: many(financialTransactions),
+}));
+
+export const financialCategoriesRelations = relations(financialCategories, ({ many }) => ({
+  transactions: many(financialTransactions),
+}));
+
+export const financialReservesRelations = relations(financialReserves, ({ many }) => ({
+  transactions: many(financialTransactions),
+}));
+
+export const financialLoansRelations = relations(financialLoans, ({ many }) => ({
+  installments: many(financialTransactions),
+}));
+
+export const financialTransactionsRelations = relations(financialTransactions, ({ one }) => ({
+  category: one(financialCategories, { fields: [financialTransactions.categoryId], references: [financialCategories.id] }),
+  account: one(financialAccounts, { fields: [financialTransactions.accountId], references: [financialAccounts.id] }),
+  product: one(products, { fields: [financialTransactions.productId], references: [products.id] }),
+  reserve: one(financialReserves, { fields: [financialTransactions.reserveId], references: [financialReserves.id] }),
+  loan: one(financialLoans, { fields: [financialTransactions.loanId], references: [financialLoans.id] }),
+}));
+
 export const settings = pgTable("settings", {
   id: text("id").primaryKey().default("default"),
   storeName: text("store_name").notNull().default("Flash Cell"),
