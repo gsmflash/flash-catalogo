@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Loader2, Plus } from "lucide-react";
 import { FINANCIAL_METHOD_LABELS, FINANCIAL_METHODS, FINANCIAL_SCOPE_LABELS, FINANCIAL_SCOPES } from "@flashcell/shared";
 import { adminFetch, ApiError } from "@/lib/admin-api";
+import { dateInputToISO, todayInputValue } from "@/lib/date-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,7 +29,7 @@ interface TransactionFormDialogProps {
 }
 
 function toDateInputValue(iso: string | null | undefined): string {
-  if (!iso) return new Date().toISOString().slice(0, 10);
+  if (!iso) return todayInputValue();
   return new Date(iso).toISOString().slice(0, 10);
 }
 
@@ -141,8 +142,8 @@ export function TransactionFormDialog({
         grossAmount: grossAmount ? Number(grossAmount.replace(",", ".")) : null,
         feePercent: feePercent ? Number(feePercent.replace(",", ".")) : null,
         categoryId,
-        date: new Date(date).toISOString(),
-        dueDate: dueDate ? new Date(dueDate).toISOString() : null,
+        date: dateInputToISO(date),
+        dueDate: dueDate ? dateInputToISO(dueDate) : null,
         paid,
         method: method === "__none__" ? null : method,
         accountId: accountId === "__none__" ? null : accountId,
@@ -151,7 +152,7 @@ export function TransactionFormDialog({
         costAmount: costAmount ? Number(costAmount.replace(",", ".")) : null,
         note: note.trim() || null,
         recurring,
-        recurrenceDay: recurring ? new Date(dueDate || date).getDate() : null,
+        recurrenceDay: recurring ? Number((dueDate || date).slice(8, 10)) : null,
       };
 
       if (editing) {

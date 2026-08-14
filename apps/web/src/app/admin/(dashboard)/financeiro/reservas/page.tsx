@@ -6,6 +6,7 @@ import { Loader2, Plus, ArrowLeftRight, Trash2, Pencil, Plane } from "lucide-rea
 import { TRAVEL_CATEGORY_PREFIX } from "@flashcell/shared";
 import { adminFetch, ApiError } from "@/lib/admin-api";
 import { formatBRL } from "@/lib/format";
+import { dateInputToISO } from "@/lib/date-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -87,7 +88,7 @@ export default function ReservasPage() {
       const body = {
         name: name.trim(),
         goalAmount: goal,
-        deadline: deadline ? new Date(deadline).toISOString() : null,
+        deadline: deadline ? dateInputToISO(deadline) : null,
         note: note.trim() || null,
       };
       if (editingReserve) {

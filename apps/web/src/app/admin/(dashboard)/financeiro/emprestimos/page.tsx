@@ -6,6 +6,7 @@ import { Loader2, Plus, ChevronDown, CheckCircle2, RotateCcw } from "lucide-reac
 import { LOAN_FREQUENCIES, LOAN_FREQUENCY_LABELS, FINANCIAL_SCOPES, FINANCIAL_SCOPE_LABELS, type FinancialScope, type LoanFrequency } from "@flashcell/shared";
 import { adminFetch, ApiError } from "@/lib/admin-api";
 import { formatBRL } from "@/lib/format";
+import { dateInputToISO, todayInputValue } from "@/lib/date-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -175,11 +176,11 @@ function LoanCreateDialog({
   const [description, setDescription] = useState("");
   const [scope, setScope] = useState<FinancialScope>("empresa");
   const [principalAmount, setPrincipalAmount] = useState("");
-  const [receivedDate, setReceivedDate] = useState(new Date().toISOString().slice(0, 10));
+  const [receivedDate, setReceivedDate] = useState(todayInputValue());
   const [installmentAmount, setInstallmentAmount] = useState("");
   const [totalToPay, setTotalToPay] = useState("");
   const [frequency, setFrequency] = useState<LoanFrequency>("diaria_seg_sab");
-  const [firstDueDate, setFirstDueDate] = useState(new Date().toISOString().slice(0, 10));
+  const [firstDueDate, setFirstDueDate] = useState(todayInputValue());
   const [accountId, setAccountId] = useState("__none__");
 
   const previewCount =
@@ -205,11 +206,11 @@ function LoanCreateDialog({
           description: description.trim(),
           scope,
           principalAmount: principal,
-          receivedDate: new Date(receivedDate).toISOString(),
+          receivedDate: dateInputToISO(receivedDate),
           installmentAmount: installment,
           totalToPay: total,
           frequency,
-          firstDueDate: new Date(firstDueDate).toISOString(),
+          firstDueDate: dateInputToISO(firstDueDate),
           accountId: accountId === "__none__" ? null : accountId,
         },
       });

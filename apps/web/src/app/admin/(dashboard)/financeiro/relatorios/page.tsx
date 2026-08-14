@@ -5,6 +5,7 @@ import { Loader2, Target } from "lucide-react";
 import { computeDailyGoal } from "@flashcell/shared";
 import { adminFetch } from "@/lib/admin-api";
 import { formatBRL } from "@/lib/format";
+import { todayInputValue } from "@/lib/date-utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -94,7 +95,7 @@ export default function RelatoriosPage() {
 function DailyGoalCalculator() {
   const [targetAmount, setTargetAmount] = useState("");
   const [availableAmount, setAvailableAmount] = useState("");
-  const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
+  const [startDate, setStartDate] = useState(todayInputValue());
   const [endDate, setEndDate] = useState("");
 
   const target = Number(targetAmount.replace(",", "."));
