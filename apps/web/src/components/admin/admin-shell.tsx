@@ -24,6 +24,8 @@ import {
   PiggyBank,
   FileBarChart,
   SlidersHorizontal,
+  ShoppingCart,
+  ClipboardList,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { cn } from "@/lib/utils";
@@ -60,6 +62,16 @@ const navItems: NavItem[] = [
       { href: "/admin/financeiro/orcamentos", label: "Orçamentos", icon: Target, roles: ["admin"] },
       { href: "/admin/financeiro/relatorios", label: "Relatórios", icon: FileBarChart, roles: ["admin"] },
       { href: "/admin/financeiro/configuracoes", label: "Configurações", icon: SlidersHorizontal, roles: ["admin"] },
+    ],
+  },
+  {
+    href: "/admin/pagamentos",
+    label: "Pagamentos",
+    icon: ShoppingCart,
+    roles: ["admin"],
+    children: [
+      { href: "/admin/pagamentos/pedidos", label: "Pedidos", icon: ClipboardList, roles: ["admin"] },
+      { href: "/admin/pagamentos/configuracoes", label: "Configurações", icon: SlidersHorizontal, roles: ["admin"] },
     ],
   },
   { href: "/admin/configuracoes", label: "Configurações", icon: Settings, roles: ["admin"] },

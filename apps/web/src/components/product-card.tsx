@@ -7,7 +7,7 @@ import { ShieldCheck } from "lucide-react";
 import { PRODUCT_STATUS_LABELS } from "@flashcell/shared";
 import type { PaymentMachine, Product } from "@/types";
 import { Badge } from "@/components/ui/badge";
-import { WhatsAppButton } from "@/components/whatsapp-button";
+import { PurchaseDialog } from "@/components/purchase-dialog";
 import { InstallmentDialog } from "@/components/installment-dialog";
 import { formatBRL } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -96,13 +96,19 @@ export function ProductCard({ product, whatsapp, machines }: ProductCardProps) {
           defaultMachineId={product.machineId}
           className="w-full border-primary/25 bg-primary/5 text-primary hover:bg-primary/10"
         />
-        <WhatsAppButton
-          phone={whatsapp}
-          brand={product.brand}
-          model={product.model}
-          storage={product.storage}
-          size="lg"
-          className="w-full"
+        <PurchaseDialog
+          product={{
+            id: product.id,
+            brand: product.brand,
+            model: product.model,
+            color: product.color,
+            storage: product.storage,
+            price: product.price,
+            imageUrl: mainImage?.url,
+          }}
+          whatsapp={whatsapp}
+          triggerSize="lg"
+          triggerClassName="w-full gap-2"
         />
       </div>
     </motion.div>

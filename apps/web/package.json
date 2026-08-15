@@ -13,6 +13,7 @@
     "@dnd-kit/sortable": "^8.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@flashcell/shared": "workspace:*",
+    "@mercadopago/sdk-react": "^1.0.7",
     "@radix-ui/react-avatar": "^1.2.6",
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-dropdown-menu": "^2.1.2",
@@ -31,8 +32,8 @@
     "next": "^15.0.2",
     "next-themes": "^0.4.6",
     "react": "^18.3.1",
-    "recharts": "^2.13.3",
     "react-dom": "^18.3.1",
+    "recharts": "^2.13.3",
     "sonner": "^1.5.0",
     "tailwind-merge": "^2.5.4",
     "zod": "^3.23.8"

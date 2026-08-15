@@ -19,3 +19,21 @@ export function buildWhatsAppLink(phone: string, message: string): string {
   const digits = phone.replace(/\D/g, "");
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 }
+
+export interface OrderConfirmationMessageInput {
+  orderNumber: string;
+  brand: string;
+  model: string;
+  storage: string;
+  amount: string;
+}
+
+/** Message the customer sends with the Pix receipt so the store can confirm the order. */
+export function buildOrderConfirmationMessage({ orderNumber, brand, model, storage, amount }: OrderConfirmationMessageInput): string {
+  return [
+    "Olá! Acabei de fazer um pedido no catálogo da Flash Cell e vou enviar o comprovante do Pix.",
+    `Pedido: #${orderNumber}`,
+    `Aparelho: ${brand} ${model} (${storage})`,
+    `Valor: ${amount}`,
+  ].join("\n");
+}

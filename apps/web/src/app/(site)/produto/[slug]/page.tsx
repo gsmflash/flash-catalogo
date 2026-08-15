@@ -6,6 +6,7 @@ import { getPaymentMachines, getProductBySlug, getSettings, NotFoundError } from
 import { ProductGallery } from "@/components/product-gallery";
 import { PaymentSimulator } from "@/components/payment-simulator";
 import { WhatsAppButton } from "@/components/whatsapp-button";
+import { PurchaseDialog } from "@/components/purchase-dialog";
 import { ShareButton } from "@/components/share-button";
 import { ProductGrid } from "@/components/product-grid";
 import { StickyWhatsApp } from "@/components/sticky-whatsapp";
@@ -101,7 +102,21 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <p className="text-5xl font-extrabold tracking-tight text-primary">{formatBRL(product.pricePix)}</p>
             <p className="mt-1 text-sm text-muted-foreground">à vista no Pix</p>
 
-            <div className="mt-4 hidden sm:block">
+            <div className="mt-4 hidden flex-col gap-2 sm:flex">
+              <PurchaseDialog
+                product={{
+                  id: product.id,
+                  brand: product.brand,
+                  model: product.model,
+                  color: product.color,
+                  storage: product.storage,
+                  price: product.price,
+                  imageUrl: product.images[0]?.url,
+                }}
+                whatsapp={settings.whatsapp}
+                triggerSize="lg"
+                triggerClassName="w-full gap-2"
+              />
               <WhatsAppButton
                 phone={settings.whatsapp}
                 brand={product.brand}
@@ -159,6 +174,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
         model={product.model}
         storage={product.storage}
         price={formatBRL(product.pricePix)}
+        product={{
+          id: product.id,
+          brand: product.brand,
+          model: product.model,
+          color: product.color,
+          storage: product.storage,
+          price: product.price,
+          imageUrl: product.images[0]?.url,
+        }}
       />
     </div>
   );

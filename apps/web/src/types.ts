@@ -1,4 +1,5 @@
 import type {
+  CheckoutMethod,
   FinancialAccountType,
   FinancialCategoryKind,
   FinancialMethod,
@@ -7,7 +8,10 @@ import type {
   InstallmentOption,
   LoanFrequency,
   LoanStatus,
+  MercadoPagoMode,
+  OrderStatus,
   PaymentMethod,
+  PixKeyType,
   ProductStatus,
 } from "@flashcell/shared";
 
@@ -263,4 +267,60 @@ export interface FinancialMonthReport {
   month: string;
   current: FinancialMonthReportData;
   previous: FinancialMonthReportData;
+}
+
+// ---------------------------------------------------------------------------
+// Checkout: Pix + Mercado Pago
+// ---------------------------------------------------------------------------
+
+export interface PublicPaymentSettings {
+  mpPublicKey: string | null;
+  mpActive: boolean;
+  mpMode: MercadoPagoMode;
+  pixName: string | null;
+  pixBank: string | null;
+  pixKey: string | null;
+  pixKeyType: PixKeyType | null;
+  pixQrCodeUrl: string | null;
+}
+
+export interface AdminPaymentSettings extends PublicPaymentSettings {
+  mpAccessTokenConfigured: boolean;
+  mpWebhookSecretConfigured: boolean;
+  webhookUrl: string | null;
+}
+
+export interface OrderProductSnapshot {
+  brand: string;
+  model: string;
+  color: string;
+  storage: string;
+  unitPrice: string;
+  imageUrl: string | null;
+}
+
+export interface Order {
+  id: string;
+  orderNumber: string;
+  productId: string | null;
+  productSnapshot: OrderProductSnapshot;
+  quantity: number;
+  customerName: string;
+  customerPhone: string;
+  amount: string;
+  method: CheckoutMethod;
+  installments: number | null;
+  status: OrderStatus;
+  mpPaymentId: string | null;
+  mpStatusDetail: string | null;
+  note: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OrderListResponse {
+  items: Order[];
+  total: number;
+  page: number;
+  pageSize: number;
 }
