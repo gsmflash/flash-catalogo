@@ -1,0 +1,1 @@
+ALTER TABLE "payment_settings" ADD COLUMN "mp_webhook_secret" text;

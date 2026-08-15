@@ -315,3 +315,64 @@ export const productsRelations = relations(products, ({ one, many }) => ({
 export const productImagesRelations = relations(productImages, ({ one }) => ({
   product: one(products, { fields: [productImages.productId], references: [products.id] }),
 }));
+
+// ---------------------------------------------------------------------------
+// Checkout: pedidos (Pix por chave + Cartão via Mercado Pago)
+// ---------------------------------------------------------------------------
+
+/**
+ * Um pedido = um pagamento (Pix por chave é confirmado manualmente pelo admin
+ * depois do comprovante no WhatsApp; Cartão é confirmado pelo Mercado Pago).
+ * Não há tabela "pagamentos" separada — seria 1:1 com o pedido nesse fluxo.
+ */
+export const orders = pgTable(
+  "orders",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orderNumber: text("order_number").notNull().unique(),
+    productId: uuid("product_id").references(() => products.id, { onDelete: "set null" }),
+    /** Snapshot do produto no momento da compra — sobrevive a edição/remoção do produto. */
+    productSnapshot: jsonb("product_snapshot").notNull(),
+    quantity: integer("quantity").notNull().default(1),
+    customerName: text("customer_name").notNull(),
+    customerPhone: text("customer_phone").notNull(),
+    amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+    method: text("method").notNull(), // "pix" | "cartao"
+    installments: integer("installments"),
+    status: text("status").notNull().default("pendente"), // pendente|pago|cancelado|em_analise|reembolsado
+    mpPaymentId: text("mp_payment_id"),
+    mpStatusDetail: text("mp_status_detail"),
+    note: text("note"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    statusIdx: index("orders_status_idx").on(table.status),
+    mpPaymentIdx: uniqueIndex("orders_mp_payment_id_idx").on(table.mpPaymentId),
+    createdAtIdx: index("orders_created_at_idx").on(table.createdAt),
+  })
+);
+
+export const ordersRelations = relations(orders, ({ one }) => ({
+  product: one(products, { fields: [orders.productId], references: [products.id] }),
+}));
+
+/**
+ * Configuração de pagamento (Mercado Pago + Pix), singleton — mesmo padrão de
+ * `settings`/`financialSettings`. accessToken nunca é devolvido pela API depois
+ * de salvo (só um indicador "configurado"); publicKey é seguro expor ao cliente.
+ */
+export const paymentSettings = pgTable("payment_settings", {
+  id: text("id").primaryKey().default("default"),
+  mpAccessToken: text("mp_access_token"),
+  mpPublicKey: text("mp_public_key"),
+  mpMode: text("mp_mode").notNull().default("sandbox"), // "sandbox" | "production"
+  mpActive: boolean("mp_active").notNull().default(false),
+  mpWebhookSecret: text("mp_webhook_secret"),
+  pixName: text("pix_name"),
+  pixBank: text("pix_bank"),
+  pixKey: text("pix_key"),
+  pixKeyType: text("pix_key_type"),
+  pixQrCodeUrl: text("pix_qr_code_url"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  CHECKOUT_METHODS,
   FINANCIAL_ACCOUNT_TYPES,
   FINANCIAL_CATEGORY_KINDS,
   FINANCIAL_METHODS,
@@ -8,8 +9,11 @@ import {
   LOAN_FREQUENCIES,
   LOAN_STATUSES,
   MAX_INSTALLMENTS,
+  MERCADOPAGO_MODES,
   MIN_INSTALLMENTS,
+  ORDER_STATUSES,
   PAYMENT_METHODS,
+  PIX_KEY_TYPES,
   PRODUCT_STATUSES,
   USER_ROLES,
 } from "./constants.js";
@@ -247,6 +251,61 @@ export const financialSettingsSchema = z.object({
   dailyPersonalLimit: z.number().min(0).nullable().optional(),
 });
 export type FinancialSettingsInput = z.infer<typeof financialSettingsSchema>;
+
+// ---------------------------------------------------------------------------
+// Checkout: Pix + Mercado Pago
+// ---------------------------------------------------------------------------
+
+/** Cria o pedido — valor e snapshot do produto são sempre calculados no servidor. */
+export const orderCreateSchema = z.object({
+  productId: z.string().uuid(),
+  quantity: z.number().int().min(1).max(10).default(1),
+  customerName: z.string().min(2).max(120),
+  customerPhone: z.string().min(8).max(20),
+  method: z.enum(CHECKOUT_METHODS),
+});
+export type OrderCreateInput = z.infer<typeof orderCreateSchema>;
+
+/** Dados devolvidos pelo Payment Brick após tokenizar o cartão no navegador. */
+export const orderChargeSchema = z.object({
+  token: z.string().min(1),
+  installments: z.number().int().min(1).max(24),
+  paymentMethodId: z.string().min(1),
+  issuerId: z.string().nullable().optional(),
+  payerEmail: z.string().email(),
+  payerIdentificationType: z.string().nullable().optional(),
+  payerIdentificationNumber: z.string().nullable().optional(),
+});
+export type OrderChargeInput = z.infer<typeof orderChargeSchema>;
+
+export const orderStatusUpdateSchema = z.object({
+  status: z.enum(ORDER_STATUSES),
+  note: z.string().max(1000).nullable().optional(),
+});
+export type OrderStatusUpdateInput = z.infer<typeof orderStatusUpdateSchema>;
+
+export const orderQuerySchema = z.object({
+  status: z.enum(ORDER_STATUSES).optional(),
+  method: z.enum(CHECKOUT_METHODS).optional(),
+  q: z.string().max(160).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(30),
+});
+export type OrderQueryInput = z.infer<typeof orderQuerySchema>;
+
+export const paymentSettingsSchema = z.object({
+  mpAccessToken: z.string().min(1).nullable().optional(),
+  mpPublicKey: z.string().min(1).nullable().optional(),
+  mpWebhookSecret: z.string().min(1).nullable().optional(),
+  mpMode: z.enum(MERCADOPAGO_MODES).default("sandbox"),
+  mpActive: z.boolean().default(false),
+  pixName: z.string().max(120).nullable().optional(),
+  pixBank: z.string().max(80).nullable().optional(),
+  pixKey: z.string().max(140).nullable().optional(),
+  pixKeyType: z.enum(PIX_KEY_TYPES).nullable().optional(),
+  pixQrCodeUrl: z.string().url().nullable().optional(),
+});
+export type PaymentSettingsInput = z.infer<typeof paymentSettingsSchema>;
 
 export const searchQuerySchema = z.object({
   q: z.string().max(160).optional(),

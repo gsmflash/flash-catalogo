@@ -19,6 +19,9 @@ import { financialLoansRouter } from "./routes/financialLoans.js";
 import { financialBudgetsRouter } from "./routes/financialBudgets.js";
 import { financialSettingsRouter } from "./routes/financialSettings.js";
 import { financialDashboardRouter } from "./routes/financialDashboard.js";
+import { ordersRouter } from "./routes/orders.js";
+import { paymentSettingsRouter } from "./routes/paymentSettings.js";
+import { mercadopagoWebhookRouter } from "./routes/mercadopagoWebhook.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 
 const app = express();
@@ -58,6 +61,9 @@ app.use("/api/financial/loans", financialLoansRouter);
 app.use("/api/financial/budgets", financialBudgetsRouter);
 app.use("/api/financial/settings", financialSettingsRouter);
 app.use("/api/financial/dashboard", financialDashboardRouter);
+app.use("/api/orders", ordersRouter);
+app.use("/api/payment-settings", paymentSettingsRouter);
+app.use("/api/mercadopago/webhook", mercadopagoWebhookRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

@@ -280,3 +280,37 @@ export const LOAN_FREQUENCY_LABELS: Record<LoanFrequency, string> = {
 
 export const LOAN_STATUSES = ["ativo", "quitado"] as const;
 export type LoanStatus = (typeof LOAN_STATUSES)[number];
+
+// ---------------------------------------------------------------------------
+// Checkout: Pix + Mercado Pago
+// ---------------------------------------------------------------------------
+
+export const CHECKOUT_METHODS = ["pix", "cartao"] as const;
+export type CheckoutMethod = (typeof CHECKOUT_METHODS)[number];
+export const CHECKOUT_METHOD_LABELS: Record<CheckoutMethod, string> = {
+  pix: "Pix",
+  cartao: "Cartão de crédito",
+};
+
+export const ORDER_STATUSES = ["pendente", "pago", "cancelado", "em_analise", "reembolsado"] as const;
+export type OrderStatus = (typeof ORDER_STATUSES)[number];
+export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
+  pendente: "Pendente",
+  pago: "Pago",
+  cancelado: "Cancelado",
+  em_analise: "Em análise",
+  reembolsado: "Reembolsado",
+};
+
+export const MERCADOPAGO_MODES = ["sandbox", "production"] as const;
+export type MercadoPagoMode = (typeof MERCADOPAGO_MODES)[number];
+
+export const PIX_KEY_TYPES = ["cpf", "cnpj", "email", "telefone", "aleatoria"] as const;
+export type PixKeyType = (typeof PIX_KEY_TYPES)[number];
+export const PIX_KEY_TYPE_LABELS: Record<PixKeyType, string> = {
+  cpf: "CPF",
+  cnpj: "CNPJ",
+  email: "E-mail",
+  telefone: "Telefone",
+  aleatoria: "Chave aleatória",
+};
